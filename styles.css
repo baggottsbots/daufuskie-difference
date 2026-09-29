@@ -318,6 +318,24 @@ button{font:inherit;cursor:pointer}
 .stay-card h3{margin-top:14px}
 .stay-card p{color:var(--ink-soft);font-size:.98rem}
 
+/* ---------- cottage rentals ---------- */
+.cottages{position:relative;color:#fff;isolation:isolate;overflow:hidden;background:var(--blue-ink)}
+.cottages-media{position:absolute;inset:0;z-index:-2}
+.cottages-media img{width:100%;height:100%;object-fit:cover;object-position:center}
+.cottages-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,28,56,.88) 0%,rgba(8,28,56,.66) 55%,rgba(8,28,56,.35) 100%)}
+.cottages-inner{max-width:720px;display:grid;gap:18px;padding-block:clamp(24px,5vw,60px)}
+.cottages .eyebrow{color:#ffd9a8;margin-bottom:0}
+.cottages .script{color:#ffd9a8}
+.cottages .lede{color:#dbe6f7}
+.airbnb-note{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;background:rgba(255,253,249,.1);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:var(--radius);padding:18px 20px;max-width:600px}
+.airbnb-note svg{width:26px;height:26px;color:#ffd9a8;margin-top:2px}
+.airbnb-note strong{display:block;font-family:var(--font-display);font-size:1.15rem;color:#fff;margin-bottom:4px}
+.airbnb-note span{color:#dbe6f7;font-size:1rem}
+.cottages-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px}
+@media (max-width:640px){
+  .cottages-actions .btn{width:100%;white-space:normal;text-align:center}
+}
+
 /* ---------- barge ---------- */
 .barge-hero{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(28px,4vw,56px);align-items:center;margin-bottom:clamp(36px,5vw,60px)}
 .barge-hero > *{min-width:0}
@@ -361,6 +379,8 @@ table.schedule tr.today td{background:rgba(223,58,47,.18)}
 .venues{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:clamp(28px,4vw,44px)}
 .venues > *{min-width:0}
 .venue{background:rgba(255,253,249,.1);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:var(--radius);padding:clamp(22px,3vw,30px);display:grid;gap:12px}
+.venue-photo{aspect-ratio:16/10;border-radius:var(--radius-sm);overflow:hidden;background:rgba(255,255,255,.08);margin-bottom:4px}
+.venue-photo img{width:100%;height:100%;object-fit:cover}
 .venue h3{font-size:1.4rem}
 .venue p{color:#dbe6f7;font-size:1rem}
 .venue ul{display:grid;gap:6px;font-size:.95rem;color:#c7d6ea}
