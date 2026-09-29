@@ -149,12 +149,16 @@
   /* ---------- live music ---------- */
   function renderEvents() {
     var grid = $('#eventGrid');
+    var scroll = $('#eventScroll');
     if (!grid) return;
     var now = today();
     var upcoming = EVENTS.filter(function (e) { return parseDate(e.date) >= now; });
     if (!upcoming.length) {
       grid.innerHTML = '<div class="events-empty"><strong>New dates are being booked now.</strong><br>Call (843) 785-8242 for this week\'s lineup.</div>';
       return;
+    }
+    if (scroll) {
+      scroll.scrollLeft = 0;
     }
     grid.innerHTML = upcoming.map(function (e, i) {
       var d = parseDate(e.date);
@@ -334,6 +338,9 @@
 
     // Section reveals: anything already on screen stays put, the rest rises in as you scroll
     var vh = window.innerHeight;
+    if (scroll) {
+      gsap.set(scroll, { overflowX: 'auto', overflowY: 'hidden' });
+    }
     $$('[data-reveal]').forEach(function (el) {
       if (el.getBoundingClientRect().top < vh * .92) return;
       gsap.set(el, { opacity: 0, y: 30 });
