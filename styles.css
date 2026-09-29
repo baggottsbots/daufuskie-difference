@@ -225,6 +225,8 @@ button{font:inherit;cursor:pointer}
 .signature li{padding:11px 0;border-bottom:1px solid rgba(255,255,255,.14);font-family:var(--font-display);font-weight:700}
 .signature li:last-child{border-bottom:0}
 .signature li span{color:#c7d6ea;font-family:var(--font-body);font-weight:400;font-size:.92rem;display:block}
+.signature a{color:#fff}
+.signature a:hover{color:#fff}
 
 /* ---------- live music ---------- */
 .events-scroll{overflow-x:auto;overflow-y:hidden;padding-bottom:12px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
