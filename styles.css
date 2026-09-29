@@ -227,8 +227,11 @@ button{font:inherit;cursor:pointer}
 .signature li span{color:#c7d6ea;font-family:var(--font-body);font-weight:400;font-size:.92rem;display:block}
 
 /* ---------- live music ---------- */
-.events{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-.events > *{min-width:0}
+.events-scroll{overflow-x:auto;overflow-y:hidden;padding-bottom:12px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.events-scroll::-webkit-scrollbar{height:10px}
+.events-scroll::-webkit-scrollbar-thumb{background:rgba(27,74,139,.25);border-radius:999px}
+.events{display:flex;gap:18px;min-width:max-content}
+.events > *{min-width:320px;max-width:360px}
 .event{background:var(--shell);border-radius:var(--radius);padding:20px 20px 22px;box-shadow:var(--shadow);display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;border:1px solid transparent;transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
 .event:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
 .event.is-next{border-color:var(--red)}
