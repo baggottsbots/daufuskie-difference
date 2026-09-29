@@ -20,6 +20,8 @@
   --c-blue:#3b78c2;
   --c-yellow:#e9b62a;
   --c-pink:#e88ba8;
+  --c-green:#4f9d7a;
+  --c-coral:#e8794f;
   --font-display:"Bricolage Grotesque","Arial Narrow",Arial,sans-serif;
   --font-body:"Source Sans 3","Segoe UI",Helvetica,Arial,sans-serif;
   --font-script:"Caveat","Brush Script MT",cursive;
@@ -148,6 +150,8 @@ button{font:inherit;cursor:pointer}
 .swatch.blue{background:var(--c-blue)}
 .swatch.yellow{background:var(--c-yellow)}
 .swatch.pink{background:var(--c-pink)}
+.swatch.green{background:var(--c-green)}
+.swatch.coral{background:var(--c-coral)}
 
 /* ---------- how to book steps ---------- */
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;counter-reset:step}
@@ -177,6 +181,8 @@ button{font:inherit;cursor:pointer}
 .cottage-copy .accent.blue{background:var(--c-blue)}
 .cottage-copy .accent.yellow{background:var(--c-yellow)}
 .cottage-copy .accent.pink{background:var(--c-pink)}
+.cottage-copy .accent.green{background:var(--c-green)}
+.cottage-copy .accent.coral{background:var(--c-coral)}
 .cottage-copy .listing{font-size:.95rem;color:var(--ink-soft)}
 .cottage-copy p.desc{font-size:1.1rem;max-width:56ch}
 .facts{display:grid;grid-template-columns:repeat(2,1fr);gap:0 24px}
@@ -192,7 +198,7 @@ button{font:inherit;cursor:pointer}
 
 /* ---------- compare table ---------- */
 .table-scroll{overflow-x:auto;border-radius:var(--radius);box-shadow:var(--shadow);background:var(--shell);-webkit-overflow-scrolling:touch}
-.compare{width:100%;min-width:720px;border-collapse:collapse;font-size:1rem}
+.compare{width:100%;min-width:1040px;border-collapse:collapse;font-size:1rem}
 .compare caption{text-align:left;padding:20px 24px 0;font-weight:700;color:var(--ink-soft);font-size:.9rem}
 .compare th,.compare td{padding:16px 22px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
 .compare thead th{font-family:var(--font-display);font-size:1.15rem;color:var(--blue-deep);border-bottom:2px solid var(--line)}
