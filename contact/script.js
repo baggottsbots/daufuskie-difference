@@ -30,7 +30,11 @@
     if (!primary) return;
     var html = primary.innerHTML;
     var mobile = $('#mobileNav'), footer = $('#footerNav');
-    if (mobile) mobile.innerHTML = html;
+    if (mobile) {
+      mobile.innerHTML = html;
+      var ferryLink = mobile.querySelector('a[href="../daufuskie-difference-ferry/"]');
+      if (ferryLink) ferryLink.href = 'https://daufuskiedifference.com/daufuskie-difference-ferry/';
+    }
     if (footer) {
       footer.innerHTML = html;
       $$('.is-active', footer).forEach(function (a) { a.classList.remove('is-active'); });
