@@ -156,7 +156,7 @@ button{cursor:pointer}
 .legend span{font-size:.92rem;color:var(--ink-soft);line-height:1.35}
 
 /* ---------- toolbar (filters + date jump) ---------- */
-.toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 24px;margin-bottom:20px}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 24px;margin-bottom:20px;margin-top:clamp(32px,5vw,48px);padding-top:clamp(24px,4vw,32px);border-top:1px solid var(--line)}
 .mfilters{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch;max-width:100%}
 .mfilters::-webkit-scrollbar{display:none}
 .mfilter{flex:none;padding:10px 18px;border-radius:999px;border:2px solid var(--blue);background:transparent;color:var(--blue);font-weight:700;font-size:.95rem;transition:background .2s,color .2s}
