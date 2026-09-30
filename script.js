@@ -380,3 +380,21 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
+
+(function () {
+  var player = document.getElementById('filmPlayer');
+  var video = document.getElementById('filmVideo');
+  var cover = document.getElementById('filmCover');
+  if (!player || !video || !cover) return;
+  cover.addEventListener('click', function () {
+    video.controls = true;
+    player.classList.add('is-playing');
+    var p = video.play();
+    if (p && p.catch) p.catch(function () { video.controls = true; });
+  });
+  video.addEventListener('ended', function () {
+    player.classList.remove('is-playing');
+    video.controls = false;
+    video.currentTime = 0.1;
+  });
+})();
