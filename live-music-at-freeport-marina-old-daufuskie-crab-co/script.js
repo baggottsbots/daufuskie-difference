@@ -111,7 +111,14 @@
   /* ---------- schedule: next show, past dates, filters ---------- */
   function parseSheetDate(value) {
     if (!value) return null;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    if (typeof value === 'string') {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+      var m = value.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);
+      if (m) return [m[1], String(parseInt(m[2], 10) + 1).padStart(2, '0'), String(m[3]).padStart(2, '0')].join('-');
+    }
+    if (Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value.getTime())) {
+      return value.getFullYear() + '-' + String(value.getMonth() + 1).padStart(2, '0') + '-' + String(value.getDate()).padStart(2, '0');
+    }
     var d = new Date(value);
     if (!isNaN(d.getTime())) {
       var y = d.getFullYear();
@@ -147,7 +154,8 @@
 
   function timeToMinutes(text) {
     if (!text) return null;
-    var m = String(text).trim().match(/^(\d{1,2})(?::(\d{2}))?\s*([AP]M)$/i);
+    var s = String(text).trim();
+    var m = s.match(/^(\d{1,2})(?::(\d{2}))?\s*([AP]M)$/i);
     if (!m) return null;
     var h = parseInt(m[1], 10) % 12;
     if (m[3].toUpperCase() === 'PM') h += 12;
@@ -270,32 +278,41 @@
     applyFilter(scheduleState.currentFilter || 'all');
   }
 
-  function normalizeSheetRows(result) {
-    if (!result) return [];
-    if (Array.isArray(result)) return result;
-    if (Array.isArray(result.data)) return result.data;
-    if (Array.isArray(result.rows)) {
-      if (Array.isArray(result.headers) && result.headers.length) {
-        return result.rows.map(function (row) {
-          if (Array.isArray(row)) {
-            var obj = {};
-            result.headers.forEach(function (h, i) { obj[h] = row[i]; });
-            return obj;
-          }
-          return row;
-        });
-      }
-      return result.rows;
+  function parseGoogleVisualisationResponse(text) {
+    var match = String(text || '').match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);\s*$/);
+    if (!match) return null;
+    try {
+      return JSON.parse(match[1]);
+    } catch (e) {
+      return null;
     }
-    return [];
+  }
+
+  function normalizeSheetRows(result) {
+    if (!result || !result.table || !Array.isArray(result.table.rows)) return [];
+    var cols = Array.isArray(result.table.cols) ? result.table.cols : [];
+    var labels = cols.map(function (col) { return col && (col.label || col.id || ''); });
+    return result.table.rows.map(function (row) {
+      var obj = {};
+      (row.c || []).forEach(function (cell, idx) {
+        var key = labels[idx];
+        if (!key) return;
+        var value = cell ? (cell.f != null && cell.f !== '' ? cell.f : cell.v) : '';
+        if (cell && cell.v && typeof cell.v === 'string' && /^Date\(\d{4},\d{1,2},\d{1,2}\)$/.test(cell.v)) value = cell.v;
+        obj[key] = value;
+      });
+      return obj;
+    });
   }
 
   function buildSheetRow(item) {
     var day = String(item.Day || item.day || '').trim();
     var date = parseSheetDate(item.Date || item.date);
     var performer = String(item.Performer || item.performer || '').trim();
-    var start = String(item['Time Start'] || item['Time Start '] || item['Start'] || item.start || '').trim();
-    var end = String(item.End || item.end || '').trim();
+    var startValue = item['Time Start'] || item['Time Start '] || item['Start'] || item.start || '';
+    var endValue = item.End || item.end || '';
+    var start = String(startValue && typeof startValue === 'object' && startValue.f != null ? startValue.f : startValue).trim();
+    var end = String(endValue && typeof endValue === 'object' && endValue.f != null ? endValue.f : endValue).trim();
     if (!date || !start || !end) return null;
     var announced = performer && performer.toLowerCase() !== 'to be announced';
     var tba = announced ? '0' : '1';
@@ -325,12 +342,16 @@
   }
 
   function fetchSchedule() {
-    var url = document.querySelector('meta[name="sheet-data-url"]') && document.querySelector('meta[name="sheet-data-url"]').content;
     var container = $('#scheduleWeeks');
     var fallback = $('#scheduleFallback');
-    if (!url || !container) return;
-    fetch(url).then(function (r) { return r.json(); }).then(function (result) {
-      var rows = normalizeSheetRows(result).map(buildSheetRow).filter(Boolean);
+    var url = 'https://docs.google.com/spreadsheets/d/1UpAYvk__51Obgm2GkAPSMNoNLTU8fteYQld7qbi2VJ8/gviz/tq?tqx=out:json';
+    if (!container) return;
+    fetch(url).then(function (r) { return r.text(); }).then(function (text) {
+      var parsed = parseGoogleVisualisationResponse(text);
+      if (!parsed || !parsed.table || !Array.isArray(parsed.table.rows)) {
+        throw new Error('Invalid gviz response');
+      }
+      var rows = normalizeSheetRows(parsed).map(buildSheetRow).filter(Boolean);
       scheduleState.rows = rows;
       if (!rows.length) {
         container.innerHTML = '<div class="week" data-reveal><h3 class="week-title">No entries yet</h3><ul class="show-list"><li class="show"><div class="show-main"><h4>The schedule will appear here once the sheet has rows.</h4><div class="show-meta"></div></div></li></ul></div>';
@@ -343,7 +364,7 @@
       renderSchedule(rows);
     }).catch(function () {
       if (fallback) fallback.hidden = false;
-      container.innerHTML = '';
+      if (container) container.innerHTML = '';
       applyScheduleState([]);
       initFilters();
       updateNextUp([]);
