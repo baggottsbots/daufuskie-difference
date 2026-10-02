@@ -4,119 +4,112 @@
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
 
-  /* ---------- BARGE SCHEDULE DATA ----------
-     Edit here to update the page. Format:
-     Month | Day | Date | BCM Load | BCM Depart | FP Arrive | Time on DI  */
-  var DATA = [
-    'September|MON|28|6:00 AM|7:00 AM|8:30 AM|3 HOURS',
-    'September|TUES|29|6:30 AM|7:30 AM|9:00 AM|3 HOURS',
-    'September|WED|30|7:30 AM|8:30 AM|10:00 AM|3 HOURS',
-    'October|THUR|1|8:30 AM|9:30 AM|11:00 AM|2 HOURS',
-    'October|FRI|2|9:30 AM|10:30 AM|NOON|2 HOURS',
-    'October|SAT|3|10:30 AM|11:30 AM|1:00 PM|2 HOURS',
-    'October|SUN|4|11:30 AM|12:30 PM|2:00 PM|2 HOURS',
-    'October|MON|5|12:30 PM|1:30 PM|3:00 PM|2 HOURS',
-    'October|TUES|6|1:30 PM|2:30 PM|4:00 PM|2 HOURS',
-    'October|WED|7|2:30 PM|3:30 PM|5:00 PM|2.5 HOURS',
-    'October|THUR|8|3:30 PM|4:30 PM|6:00 PM|2.5 HOURS',
-    'October|FRI|9|4:00 AM|5:00 AM|6:30 AM|2.5 HOURS',
-    'October|SAT|10|4:30 AM|5:30 AM|7:00 AM|3 HOURS',
-    'October|SUN|11|5:30 AM|6:30 AM|8:00 AM|2 HOURS',
-    'October|MON|12|6:00 AM|7:00 AM|8:30 AM|3 HOURS',
-    'October|TUES|13|6:30 AM|7:30 AM|9:00 AM|2.5 HOURS',
-    'October|WED|14|7:00 AM|8:00 AM|9:30 AM|2.5 HOURS',
-    'October|THUR|15|8:00 AM|9:00 AM|10:30 AM|2 HOURS',
-    'October|FRI|16|8:30 AM|9:30 AM|11:00 AM|2 HOURS',
-    'October|SAT|17|9:00 AM|10:00 AM|11:30 AM|2 HOURS',
-    'October|SUN|18|10:00 AM|11:00 AM|12:30 PM|2 HOURS',
-    'October|MON|19|11:00 AM|NOON|1:30 PM|2 HOURS',
-    'October|TUES|20|NOON|1:00 PM|2:30 PM|2 HOURS',
-    'October|WED|21|1:00 PM|2:00 PM|3:30 PM|2 HOURS',
-    'October|THUR|22|2:00 PM|3:00 PM|4:30 PM|2 HOURS',
-    'October|FRI|23|3:00 PM|4:00 PM|5:30 PM|2.5 HOURS',
-    'October|SAT|24|3:30 PM|4:30 PM|6:00 PM|2.5 HOURS',
-    'October|SUN|25|4:00 AM|5:00 AM|6:30 AM|2.5 HOURS',
-    'October|MON|26|5:00 AM|6:00 AM|7:30 AM|3 HOURS',
-    'October|TUES|27|5:30 AM|6:30 AM|8:00 AM|3 HOURS',
-    'October|WED|28|6:30 AM|7:30 AM|9:00 AM|3 HOURS',
-    'October|TUES|29|7:00 AM|8:00 AM|9:30 AM|3 HOURS',
-    'October|WED|30|8:00 AM|9:00 AM|10:30 AM|2 HOURS',
-    'November|SUN|1|9:00 AM|10:00 AM|11:30 AM|2 HOURS|1:30 PM|3:00 PM',
-    'November|MON|2|10:30 AM|11:30 AM|1:00 PM|2 HOURS|3:00 PM|4:30 PM',
-    'November|TUES|3|11:30 AM|12:30 PM|2:00 PM|2 HOURS|4:00 PM|5:30 PM',
-    'November|WED|4|12:30 PM|1:30 PM|3:00 PM|2 HOURS|5:00 PM|6:30 PM',
-    'November|THUR|5|1:30 PM|2:30 PM|4:00 PM|2.5 HOURS|6:30 PM|8:00 PM',
-    'November|FRI|6|2:00 PM|3:00 PM|4:30 PM|2.5 HOURS|7:00 PM|8:30 PM',
-    'November|SAT|7|3:00 PM|4:00 PM|5:30 PM|2.5 HOURS|8:00 PM|9:30 PM',
-    'November|SUN|8|3:30 PM|4:30 PM|6:00 PM|2.5 HOURS|8:30 PM|10:00 PM',
-    'November|MON|9|4:00 AM|5:00 AM|6:30 AM|2.5 HOURS|9:00 AM|10:30 AM',
-    'November|TUES|10|4:30 AM|5:30 AM|7:00 AM|2.5 HOURS|9:30 AM|11:00 AM',
-    'November|WED|11|5:00 AM|6:00 AM|7:30 AM|2.5 HOURS|10:00 AM|11:30 AM',
-    'November|THUR|12|5:30 AM|6:30 AM|8:00 AM|2.5 HOURS|10:30 AM|12:00 PM',
-    'November|FRI|13|6:30 AM|7:30 AM|9:00 AM|2 HOURS|11:00 AM|12:30 PM',
-    'November|SAT|14|7:00 AM|8:00 AM|9:30 AM|2 HOURS|11:30 AM|1:00 PM',
-    'November|SUN|15|7:30 AM|8:30 AM|10:00 AM|2 HOURS|12:00 PM|1:30 PM',
-    'November|MON|16|8:30 AM|9:30 AM|11:00 AM|2 HOURS|1:00 PM|2:30 PM',
-    'November|TUES|17|9:30 AM|10:30 AM|12:00 PM|2 HOURS|2:00 PM|3:30 PM',
-    'November|WED|18|10:30 AM|11:30 AM|1:00 PM|2 HOURS|3:00 PM|4:30 PM',
-    'November|THUR|19|11:30 AM|12:30 PM|2:00 PM|2 HOURS|4:00 PM|5:30 PM',
-    'November|FRI|20|12:30 PM|1:30 PM|3:00 PM|2 HOURS|5:00 PM|6:30 PM',
-    'November|SAT|21|1:30 PM|2:30 PM|4:00 PM|2 HOURS|6:00 PM|7:30 PM',
-    'November|SUN|22|2:30 PM|3:30 PM|5:00 PM|2.5 HOURS|7:30 PM|9:00 PM',
-    'November|MON|23|3:00 PM|4:00 PM|5:30 PM|3 HOURS|8:30 PM|10:00 PM',
-    'November|TUES|24|3:30 PM|4:30 PM|6:00 PM|3 HOURS|9:00 PM|10:30 PM',
-    'November|WED|25|4:00 AM|5:00 AM|6:30 AM|3 HOURS|9:30 AM|11:00 AM',
-    'November|THUR|26|5:00 AM|6:00 AM|7:30 AM|3 HOURS|10:30 AM|12:00 PM',
-    'November|FRI|27|6:00 AM|7:00 AM|8:30 AM|3 HOURS|11:30 AM|1:00 PM',
-    'November|SAT|28|7:00 AM|8:00 AM|9:30 AM|2.5 HOURS|12:00 PM|1:30 PM',
-    'November|SUN|29|8:00 AM|9:00 AM|10:30 AM|2 HOURS|12:30 PM|2:00 PM',
-    'November|MON|30|9:00 AM|10:00 AM|11:30 AM|2 HOURS|1:30 PM|3:00 PM',
-    'December|TUES|30|9:30 AM|10:30 AM|NOON|2 HOURS',
-    'December|WED|31|10:30 AM|11:30 AM|1:00 PM|2 HOURS',
-    'December|TUES|1|10:00 AM|11:00 AM|12:30 PM|2 HOURS',
-    'December|WED|2|11:00 AM|NOON|1:30 PM|2 HOURS',
-    'December|THUR|3|NOON|1:00 PM|2:30 PM|2 HOURS',
-    'December|FRI|4|1:00 PM|2:00 PM|3:30 PM|2 HOURS',
-    'December|SAT|5|2:00 PM|3:00 PM|4:30 PM|2 HOURS',
-    'December|SUN|6|2:30 PM|3:30 PM|5:00 PM|2 HOURS',
-    'December|MON|7|3:00 PM|4:00 PM|5:30 PM|2 HOURS',
-    'December|TUES|8|3:30 PM|4:30 PM|6:00 PM|2 HOURS',
-    'December|WED|9|4:00 AM|5:00 AM|6:30 AM|2 HOURS',
-    'December|THUR|10|4:30 AM|5:30 AM|7:00 AM|2 HOURS',
-    'December|FRI|11|5:30 AM|6:30 AM|8:00 AM|2 HOURS',
-    'December|SAT|12|6:00 AM|7:00 AM|8:30 AM|2 HOURS',
-    'December|SUN|13|6:30 AM|7:30 AM|9:00 AM|2 HOURS',
-    'December|MON|14|7:00 AM|8:00 AM|9:30 AM|2 HOURS',
-    'December|TUES|15|8:00 AM|9:00 AM|10:30 AM|2 HOURS',
-    'December|WED|16|8:30 AM|9:30 AM|11:00 AM|2 HOURS',
-    'December|THUR|17|9:30 AM|10:30 AM|NOON|2 HOURS',
-    'December|FRI|18|10:30 AM|11:30 AM|1:00 PM|2 HOURS',
-    'December|SAT|19|NOON|1:00 PM|2:30 PM|2 HOURS',
-    'December|SUN|20|1:00 PM|2:00 PM|3:30 PM|2 HOURS',
-    'December|MON|21|2:00 PM|3:00 PM|4:30 PM|2 HOURS',
-    'December|TUES|22|3:00 PM|4:00 PM|5:30 PM|2.5 HOURS',
-    'December|WED|23|3:30 PM|4:30 PM|6:00 PM|3 HOURS',
-    'December|TUES|24|4:00 AM|5:00 AM|6:30 AM|3 HOURS',
-    'December|WED|25|5:00 AM|6:00 AM|7:30 AM|3 HOURS',
-    'December|FRI|26|6:00 AM|7:00 AM|8:30 AM|2.5 HOURS',
-    'December|SAT|27|6:30 AM|7:30 AM|9:00 AM|2.5 HOURS',
-    'December|SUN|28|7:30 AM|8:30 AM|10:00 AM|2 HOURS',
-    'December|MON|29|8:30 AM|9:30 AM|11:00 AM|2 HOURS'
-  ];
-
+  /* ---------- BARGE SCHEDULE DATA: live Google Sheet ---------- */
+  var SHEET_URL = 'https://docs.google.com/spreadsheets/d/1pG55Y_qApu-7Mm0AdGRZdOoKFwrnOP4EEe_3hgg7Yf4/gviz/tq?tqx=out:csv&gid=1838050786';
   var YEAR = 2026;
   var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   var DAYNAMES = { MON:'Mon', TUES:'Tue', WED:'Wed', THUR:'Thu', FRI:'Fri', SAT:'Sat', SUN:'Sun' };
+  var ROWS = [];
 
-  var ROWS = DATA.map(function (line, i) {
-    var p = line.split('|');
-    var mi = MONTHS.indexOf(p[0]);
-    return {
-      i: i, month: p[0], mi: mi, dow: p[1], day: parseInt(p[2], 10),
-      load: p[3], depart: p[4], arrive: p[5], stay: p[6],
-      time: new Date(YEAR, mi, parseInt(p[2], 10)).getTime()
-    };
-  });
+  function parseCSV(text) {
+    text = text.replace(/^\uFEFF/, '');
+    var records = [], row = [], field = '', quoted = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (quoted) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { field += '"'; i++; }
+          else quoted = false;
+        } else field += c;
+      } else if (c === '"' && !field.length) {
+        quoted = true;
+      } else if (c === ',') {
+        row.push(field); field = '';
+      } else if (c === '\r' || c === '\n') {
+        row.push(field); records.push(row); row = []; field = '';
+        if (c === '\r' && text[i + 1] === '\n') i++;
+      } else field += c;
+    }
+    if (quoted) throw new Error('Invalid CSV');
+    if (field.length || row.length) { row.push(field); records.push(row); }
+    return records.filter(function (r) { return r.some(function (v) { return v.trim(); }); });
+  }
+
+  function parseSheetDate(value) {
+    var s = value.trim(), m, y, mi, day;
+    if (!s) return null;
+    if ((m = /^Date\(\s*(\d{4}),\s*(\d{1,2}),\s*(\d{1,2})(?:,\s*\d+)*\s*\)$/i.exec(s))) {
+      y = +m[1]; mi = +m[2]; day = +m[3];
+    } else if ((m = /^(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?$/.exec(s))) {
+      y = m[3] ? +m[3] : YEAR; mi = +m[1] - 1; day = +m[2];
+    } else if ((m = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ].*)?$/.exec(s))) {
+      y = +m[1]; mi = +m[2] - 1; day = +m[3];
+    } else {
+      s = s.replace(/^(?:Sun(?:day)?|Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?),?\s+/i, '');
+      if (!/\b\d{4}\b/.test(s)) s += ' ' + YEAR;
+      var parsed = new Date(s);
+      if (isNaN(parsed.getTime())) return null;
+      y = parsed.getFullYear(); mi = parsed.getMonth(); day = parsed.getDate();
+    }
+    var date = new Date(y, mi, day);
+    return date.getFullYear() === y && date.getMonth() === mi && date.getDate() === day ? date : null;
+  }
+
+  function escapeSheetText(value) {
+    return value.replace(/[&<>"']/g, function (c) {
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+  }
+
+  function loadSchedule() {
+    return fetch(SHEET_URL, { cache: 'no-store' }).then(function (response) {
+      if (!response.ok) throw new Error('Schedule fetch failed');
+      return response.text();
+    }).then(function (text) {
+      var records = parseCSV(text);
+      if (!records.length) throw new Error('Empty schedule');
+      var headers = records.shift().map(function (h) { return h.trim().replace(/\s+/g, ' ').toUpperCase(); });
+      var required = ['DAY', 'DATE', 'BCM LOAD', 'BCM DEPART', 'FP ARRIVE', 'TIME ON DI', 'FP DEPART', 'BCM ARRIVAL'];
+      if (!required.every(function (h) { return headers.indexOf(h) !== -1; })) throw new Error('Invalid schedule headers');
+      var days = ['SUN', 'MON', 'TUES', 'WED', 'THUR', 'FRI', 'SAT'];
+      ROWS = [];
+      records.forEach(function (record) {
+        function cell(name) { return (record[headers.indexOf(name)] || '').trim(); }
+        var date = parseSheetDate(cell('DATE'));
+        if (!date || !cell('BCM LOAD') || !cell('BCM DEPART') || !cell('FP ARRIVE') || !cell('TIME ON DI')) return;
+        var dow = cell('DAY');
+        var dayKey = { SUN:'SUN', MON:'MON', TUE:'TUES', WED:'WED', THU:'THUR', FRI:'FRI', SAT:'SAT' }[dow.slice(0, 3).toUpperCase()];
+        ROWS.push({
+          i: ROWS.length, month: MONTHS[date.getMonth()], mi: date.getMonth(),
+          dow: dow ? (dayKey || escapeSheetText(dow)) : days[date.getDay()],
+          day: date.getDate(), year: date.getFullYear(),
+          load: escapeSheetText(cell('BCM LOAD')), depart: escapeSheetText(cell('BCM DEPART')),
+          arrive: escapeSheetText(cell('FP ARRIVE')), stay: escapeSheetText(cell('TIME ON DI')),
+          fpDepart: cell('FP DEPART'), bcmArrival: cell('BCM ARRIVAL'),
+          time: date.getTime()
+        });
+      });
+      if (!ROWS.length) throw new Error('No valid schedule rows');
+      ROWS.sort(function (a, b) { return a.time - b.time || a.i - b.i; });
+      today = startOfToday();
+      nextRow = null;
+      ROWS.forEach(function (r) {
+        if (r.time >= today && (!nextRow || r.time < nextRow.time)) nextRow = r;
+      });
+      function inputDate(r) {
+        return r.year + '-' + ('0' + (r.mi + 1)).slice(-2) + '-' + ('0' + r.day).slice(-2);
+      }
+      $('#jumpDate').min = inputDate(ROWS[0]);
+      $('#jumpDate').max = inputDate(ROWS[ROWS.length - 1]);
+      renderFilters();
+      renderList();
+      renderNext();
+      initJump();
+    }).catch(function () {
+      $('#scheduleList').innerHTML = '<div class="empty">Schedule is temporarily unavailable. Please call (843) 290-9336.</div>';
+      $('#nextTitle').textContent = 'Call for upcoming dates';
+    });
+  }
 
   function pretty(t) { return t === 'NOON' ? 'Noon' : t; }
   function stayText(s) { return s.toLowerCase().replace('hours', 'hrs'); }
@@ -187,9 +180,6 @@
   /* ---------- schedule rendering ---------- */
   var today = startOfToday();
   var nextRow = null;
-  ROWS.forEach(function (r) {
-    if (r.time >= today && (!nextRow || r.time < nextRow.time)) nextRow = r;
-  });
   var activeMonth = 'all';
 
   function rowHtml(r) {
@@ -264,7 +254,7 @@
       var v = input.value; if (!v) return;
       var p = v.split('-');
       var mi = parseInt(p[1], 10) - 1, day = parseInt(p[2], 10);
-      var match = ROWS.filter(function (r) { return r.mi === mi && r.day === day; })[0];
+      var match = ROWS.filter(function (r) { return r.year === parseInt(p[0], 10) && r.mi === mi && r.day === day; })[0];
       msg.hidden = false;
       if (!match) {
         msg.textContent = 'No barge listed for that date. Please call (843) 290-9336.';
@@ -291,10 +281,7 @@
     buildNav();
     initMobileMenu();
     initHeader();
-    renderFilters();
-    renderList();
-    renderNext();
-    initJump();
+    loadSchedule();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
