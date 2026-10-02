@@ -3,6 +3,8 @@
 
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+  var scheduleState = { rows: [], filtersBound: false, currentFilter: 'all' };
+  var refreshTimer = null;
 
   /* ---------- home URL ----------
      TEMPLATE NOTE: change PAGE_SLUG to this page's folder name (for example
@@ -107,43 +109,250 @@
   }
 
   /* ---------- schedule: next show, past dates, filters ---------- */
-  function initSchedule() {
-    var rows = $$('.show');
-    if (!rows.length) return;
+  function parseSheetDate(value) {
+    if (!value) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    var d = new Date(value);
+    if (!isNaN(d.getTime())) {
+      var y = d.getFullYear();
+      var m = String(d.getMonth() + 1).padStart(2, '0');
+      var day = String(d.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + day;
+    }
+    return null;
+  }
+
+  function formatDayLabel(dateStr) {
+    var d = new Date(dateStr + 'T12:00:00');
+    return new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'long' }).format(d);
+  }
+
+  function formatDisplayDate(dateStr) {
+    var d = new Date(dateStr + 'T12:00:00');
+    var parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' }).formatToParts(d);
+    var month = parts.find(function (p) { return p.type === 'month'; }).value;
+    var day = parts.find(function (p) { return p.type === 'day'; }).value;
+    return { month: month, day: day };
+  }
+
+  function escapeHTML(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+  }
+
+  function formatWhen(day, dateStr, start, end) {
+    return day + ', ' + formatDisplayDate(dateStr).month + ' ' + formatDisplayDate(dateStr).day + ' from ' + start + ' to ' + end;
+  }
+
+  function timeToMinutes(text) {
+    if (!text) return null;
+    var m = String(text).trim().match(/^(\d{1,2})(?::(\d{2}))?\s*([AP]M)$/i);
+    if (!m) return null;
+    var h = parseInt(m[1], 10) % 12;
+    if (m[3].toUpperCase() === 'PM') h += 12;
+    return h * 60 + parseInt(m[2] || '0', 10);
+  }
+
+  function groupLabel(dateStr) {
+    var d = new Date(dateStr + 'T12:00:00');
+    return new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' }).format(d);
+  }
+
+  function buildWeekLabel(startDate, endDate) {
+    var s = formatDisplayDate(startDate), e = formatDisplayDate(endDate);
+    return s.month + ' ' + s.day + ' to ' + e.month + ' ' + e.day;
+  }
+
+  function renderSchedule(rows) {
+    var container = $('#scheduleWeeks');
+    var fallback = $('#scheduleFallback');
+    if (!container) return;
+    if (fallback) fallback.hidden = true;
+    if (!rows.length) {
+      container.innerHTML = '<div class="week" data-reveal><h3 class="week-title">No entries yet</h3><ul class="show-list"><li class="show"><div class="show-main"><h4>The schedule will appear here once the sheet has rows.</h4><div class="show-meta"></div></div></li></ul></div>';
+      applyScheduleState([]);
+      initFilters();
+      updateNextUp([]);
+      return;
+    }
+    rows.sort(function (a, b) { return a.date.localeCompare(b.date) || (a.startMinutes - b.startMinutes); });
+    var html = '';
+    var i = 0;
+    while (i < rows.length) {
+      var start = rows[i].date, end = rows[i].date, bucket = [];
+      bucket.push(rows[i]);
+      i++;
+      while (i < rows.length) {
+        var current = new Date(rows[i].date + 'T12:00:00');
+        var prev = new Date(bucket[bucket.length - 1].date + 'T12:00:00');
+        var diff = Math.floor((current - prev) / 86400000);
+        if (diff <= 3) { bucket.push(rows[i]); end = rows[i].date; i++; } else break;
+      }
+      html += '<div class="week" data-reveal><h3 class="week-title">' + escapeHTML(buildWeekLabel(start, end)) + '</h3><ul class="show-list">';
+      bucket.forEach(function (row) { html += row.html; });
+      html += '</ul></div>';
+    }
+    container.innerHTML = html;
+    applyScheduleState(rows);
+    initFilters();
+    updateNextUp(rows);
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
+  }
+
+  function getNYDateTime() {
     var parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
     var o = {};
     parts.forEach(function (p) { o[p.type] = p.value; });
-    var now = o.year + '-' + o.month + '-' + o.day + 'T' + o.hour + ':' + o.minute;
+    return {
+      date: o.year + '-' + o.month + '-' + o.day,
+      minutes: (parseInt(o.hour, 10) * 60) + parseInt(o.minute, 10)
+    };
+  }
+
+  function updateNextUp(rows) {
+    var now = getNYDateTime();
     var next = null;
     rows.forEach(function (r) {
-      if (r.getAttribute('data-date') + 'T' + r.getAttribute('data-end') <= now) r.classList.add('is-past');
-      else if (!next) next = r;
+      if (next) return;
+      if (r.date > now.date || (r.date === now.date && r.endMinutes > now.minutes)) next = r;
     });
     var name = $('#nextName'), when = $('#nextWhen');
     if (next) {
-      next.classList.add('is-next');
-      var meta = $('.show-meta', next), tag = document.createElement('span');
-      tag.className = 'tag'; tag.textContent = 'Next up';
-      if (meta) meta.appendChild(tag);
-      if (name) name.textContent = next.getAttribute('data-artist');
-      if (when) when.textContent = next.getAttribute('data-when');
+      if (name) name.textContent = next.artist;
+      if (when) when.textContent = next.when;
     } else {
-      if (name) name.textContent = 'See you next season';
-      if (when) when.textContent = 'The fall schedule has wrapped. Check back for new dates.';
+      if (name) name.textContent = 'Loading schedule…';
+      if (when) when.textContent = 'Checking the latest live music dates.';
     }
-    var btns = $$('.filter');
-    btns.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var f = btn.getAttribute('data-filter');
-        btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b === btn)); });
-        rows.forEach(function (r) {
-          var ok = f === 'all' || (f === 'announced' ? r.getAttribute('data-tba') === '0' : r.getAttribute('data-slot') === f);
-          r.hidden = !ok;
-        });
-        $$('.week').forEach(function (w) { w.hidden = !$$('.show:not([hidden])', w).length; });
-        if (window.ScrollTrigger) ScrollTrigger.refresh();
-      });
+  }
+
+  function applyScheduleState(rows) {
+    var now = getNYDateTime();
+    var nextFound = false;
+    $$('.show').forEach(function (r) {
+      var date = r.getAttribute('data-date') || '';
+      var endMinutes = parseInt(r.getAttribute('data-end-minutes') || '0', 10) || 0;
+      var isPast = !!date && (date < now.date || (date === now.date && endMinutes <= now.minutes));
+      var isUpcoming = !!date && (date > now.date || (date === now.date && endMinutes > now.minutes));
+      r.classList.toggle('is-past', isPast);
+      if (!nextFound && isUpcoming) {
+        r.classList.add('is-next');
+        nextFound = true;
+      } else {
+        r.classList.remove('is-next');
+      }
     });
+  }
+
+  function applyFilter(filter) {
+    scheduleState.currentFilter = filter;
+    var weeks = $$('.week');
+    $$('.filter').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-filter') === filter)); });
+    $$('.show').forEach(function (r) {
+      var ok = filter === 'all' || (filter === 'announced' ? r.getAttribute('data-tba') === '0' : r.getAttribute('data-slot') === filter);
+      r.hidden = !ok;
+    });
+    weeks.forEach(function (w) { w.hidden = !$$('.show:not([hidden])', w).length; });
+    applyScheduleState(scheduleState.rows);
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
+  }
+
+  function initFilters() {
+    var group = $('.filters');
+    if (!group || scheduleState.filtersBound) return;
+    scheduleState.filtersBound = true;
+    group.addEventListener('click', function (e) {
+      var btn = e.target.closest('.filter');
+      if (!btn) return;
+      applyFilter(btn.getAttribute('data-filter') || 'all');
+    });
+    applyFilter(scheduleState.currentFilter || 'all');
+  }
+
+  function normalizeSheetRows(result) {
+    if (!result) return [];
+    if (Array.isArray(result)) return result;
+    if (Array.isArray(result.data)) return result.data;
+    if (Array.isArray(result.rows)) {
+      if (Array.isArray(result.headers) && result.headers.length) {
+        return result.rows.map(function (row) {
+          if (Array.isArray(row)) {
+            var obj = {};
+            result.headers.forEach(function (h, i) { obj[h] = row[i]; });
+            return obj;
+          }
+          return row;
+        });
+      }
+      return result.rows;
+    }
+    return [];
+  }
+
+  function buildSheetRow(item) {
+    var day = String(item.Day || item.day || '').trim();
+    var date = parseSheetDate(item.Date || item.date);
+    var performer = String(item.Performer || item.performer || '').trim();
+    var start = String(item['Time Start'] || item['Time Start '] || item['Start'] || item.start || '').trim();
+    var end = String(item.End || item.end || '').trim();
+    if (!date || !start || !end) return null;
+    var announced = performer && performer.toLowerCase() !== 'to be announced';
+    var tba = announced ? '0' : '1';
+    var slot = timeToMinutes(start) === 18 * 60 ? 'evening' : 'afternoon';
+    var display = formatDisplayDate(date);
+    var when = formatWhen(day || formatDayLabel(date), date, start, end);
+    var safeArtist = performer || 'To be announced';
+    var safeDay = escapeHTML(day || formatDayLabel(date));
+    var safeStart = escapeHTML(start);
+    var safeEnd = escapeHTML(end);
+    return {
+      date: date,
+      start: start,
+      end: end,
+      startMinutes: timeToMinutes(start) || 0,
+      endMinutes: timeToMinutes(end) || 0,
+      slot: slot,
+      tba: tba,
+      artist: safeArtist,
+      when: when,
+      html: '<li class="show' + (tba === '1' ? ' is-tba' : '') + '" data-date="' + escapeHTML(date) + '" data-start="' + escapeHTML(start.replace(/\s+/g, '')) + '" data-end="' + escapeHTML(end.replace(/\s+/g, '')) + '" data-end-minutes="' + escapeHTML(String(timeToMinutes(end) || 0)) + '" data-slot="' + escapeHTML(slot) + '" data-tba="' + escapeHTML(tba) + '" data-artist="' + escapeHTML(safeArtist) + '" data-when="' + escapeHTML(when) + '">' +
+        '<time class="show-date" datetime="' + escapeHTML(date) + '"><span>' + escapeHTML(display.month) + '</span><b>' + escapeHTML(display.day) + '</b></time>' +
+        '<div class="show-main"><h4>' + escapeHTML(safeArtist) + '</h4><div class="show-meta">' + (slot === 'evening' ? '<span class="tag">Evening</span>' : '') + '</div></div>' +
+        '<div class="show-when"><span class="day">' + safeDay + '</span><span class="time tabular">' + safeStart + ' to ' + safeEnd + '</span></div>' +
+      '</li>'
+    };
+  }
+
+  function fetchSchedule() {
+    var url = document.querySelector('meta[name="sheet-data-url"]') && document.querySelector('meta[name="sheet-data-url"]').content;
+    var container = $('#scheduleWeeks');
+    var fallback = $('#scheduleFallback');
+    if (!url || !container) return;
+    fetch(url).then(function (r) { return r.json(); }).then(function (result) {
+      var rows = normalizeSheetRows(result).map(buildSheetRow).filter(Boolean);
+      scheduleState.rows = rows;
+      if (!rows.length) {
+        container.innerHTML = '<div class="week" data-reveal><h3 class="week-title">No entries yet</h3><ul class="show-list"><li class="show"><div class="show-main"><h4>The schedule will appear here once the sheet has rows.</h4><div class="show-meta"></div></div></li></ul></div>';
+        if (fallback) fallback.hidden = true;
+        applyScheduleState([]);
+        initFilters();
+        updateNextUp([]);
+        return;
+      }
+      renderSchedule(rows);
+    }).catch(function () {
+      if (fallback) fallback.hidden = false;
+      container.innerHTML = '';
+      applyScheduleState([]);
+      initFilters();
+      updateNextUp([]);
+    });
+  }
+
+  function initSchedule() {
+    fetchSchedule();
+    setInterval(fetchSchedule, 300000);
   }
 
   /* ---------- boot ---------- */
