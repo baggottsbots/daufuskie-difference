@@ -278,16 +278,6 @@
     applyFilter(scheduleState.currentFilter || 'all');
   }
 
-  function parseGoogleVisualisationResponse(text) {
-    var match = String(text || '').match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);\s*$/);
-    if (!match) return null;
-    try {
-      return JSON.parse(match[1]);
-    } catch (e) {
-      return null;
-    }
-  }
-
   function normalizeSheetRows(result) {
     if (!result || !result.table || !Array.isArray(result.table.rows)) return [];
     var cols = Array.isArray(result.table.cols) ? result.table.cols : [];
@@ -344,31 +334,73 @@
   function fetchSchedule() {
     var container = $('#scheduleWeeks');
     var fallback = $('#scheduleFallback');
-    var url = 'https://docs.google.com/spreadsheets/d/1UpAYvk__51Obgm2GkAPSMNoNLTU8fteYQld7qbi2VJ8/gviz/tq?tqx=out:json';
     if (!container) return;
-    fetch(url).then(function (r) { return r.text(); }).then(function (text) {
-      var parsed = parseGoogleVisualisationResponse(text);
-      if (!parsed || !parsed.table || !Array.isArray(parsed.table.rows)) {
-        throw new Error('Invalid gviz response');
+
+    var callbackName = '_gvizScheduleCb_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
+    var script = document.createElement('script');
+    var sheetId = '1UpAYvk__51Obgm2GkAPSMNoNLTU8fteYQld7qbi2VJ8';
+    var sheetTab = 'music_schedule';
+    var gid = '1838050786';
+    var url = 'https://docs.google.com/spreadsheets/d/' + sheetId + '/gviz/tq?sheet=' + encodeURIComponent(sheetTab) + '&gid=' + encodeURIComponent(gid) + '&tqx=responseHandler:' + encodeURIComponent(callbackName);
+
+    var timedOut = false;
+    var timeoutId = setTimeout(function () {
+      timedOut = true;
+      cleanup();
+      handleError();
+    }, 15000);
+
+    function cleanup() {
+      clearTimeout(timeoutId);
+      if (script && script.parentNode) {
+        script.parentNode.removeChild(script);
       }
-      var rows = normalizeSheetRows(parsed).map(buildSheetRow).filter(Boolean);
-      scheduleState.rows = rows;
-      if (!rows.length) {
-        container.innerHTML = '<div class="week" data-reveal><h3 class="week-title">No entries yet</h3><ul class="show-list"><li class="show"><div class="show-main"><h4>The schedule will appear here once the sheet has rows.</h4><div class="show-meta"></div></div></li></ul></div>';
-        if (fallback) fallback.hidden = true;
-        applyScheduleState([]);
-        initFilters();
-        updateNextUp([]);
-        return;
+      try {
+        delete window[callbackName];
+      } catch (e) {
+        window[callbackName] = undefined;
       }
-      renderSchedule(rows);
-    }).catch(function () {
+    }
+
+    function handleError() {
       if (fallback) fallback.hidden = false;
       if (container) container.innerHTML = '';
       applyScheduleState([]);
       initFilters();
       updateNextUp([]);
-    });
+    }
+
+    window[callbackName] = function (response) {
+      if (timedOut) return;
+      cleanup();
+      try {
+        if (!response || !response.table || !Array.isArray(response.table.rows)) {
+          throw new Error('Invalid gviz table response');
+        }
+        var rows = normalizeSheetRows(response).map(buildSheetRow).filter(Boolean);
+        scheduleState.rows = rows;
+        if (!rows.length) {
+          container.innerHTML = '<div class="week" data-reveal><h3 class="week-title">No entries yet</h3><ul class="show-list"><li class="show"><div class="show-main"><h4>The schedule will appear here once the sheet has rows.</h4><div class="show-meta"></div></div></li></ul></div>';
+          if (fallback) fallback.hidden = true;
+          applyScheduleState([]);
+          initFilters();
+          updateNextUp([]);
+          return;
+        }
+        renderSchedule(rows);
+      } catch (err) {
+        handleError();
+      }
+    };
+
+    script.onerror = function () {
+      if (timedOut) return;
+      cleanup();
+      handleError();
+    };
+
+    script.src = url;
+    document.head.appendChild(script);
   }
 
   function initSchedule() {
