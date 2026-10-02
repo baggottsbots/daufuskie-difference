@@ -37,32 +37,96 @@
     { date: '2026-10-31', day: 'Fri', artist: 'TBA', start: '1:00 PM', end: '5:00 PM' }
   ];
 
-  // Barge schedule: date | load at Broad Creek Marina | depart BCM | arrive Freeport | time on island
-  var BARGE_SCHEDULE = [
-    '2026-09-28|6:00 AM|7:00 AM|8:30 AM|3 hrs', '2026-09-29|6:30 AM|7:30 AM|9:00 AM|3 hrs', '2026-09-30|7:30 AM|8:30 AM|10:00 AM|3 hrs',
-    '2026-10-01|8:30 AM|9:30 AM|11:00 AM|2 hrs', '2026-10-02|9:30 AM|10:30 AM|Noon|2 hrs', '2026-10-03|10:30 AM|11:30 AM|1:00 PM|2 hrs',
-    '2026-10-04|11:30 AM|12:30 PM|2:00 PM|2 hrs', '2026-10-05|12:30 PM|1:30 PM|3:00 PM|2 hrs', '2026-10-06|1:30 PM|2:30 PM|4:00 PM|2 hrs',
-    '2026-10-07|2:30 PM|3:30 PM|5:00 PM|2.5 hrs', '2026-10-08|3:30 PM|4:30 PM|6:00 PM|2.5 hrs', '2026-10-09|4:00 AM|5:00 AM|6:30 AM|2.5 hrs',
-    '2026-10-10|4:30 AM|5:30 AM|7:00 AM|3 hrs', '2026-10-11|5:30 AM|6:30 AM|8:00 AM|2 hrs', '2026-10-12|6:00 AM|7:00 AM|8:30 AM|3 hrs',
-    '2026-10-13|6:30 AM|7:30 AM|9:00 AM|2.5 hrs', '2026-10-14|7:00 AM|8:00 AM|9:30 AM|2.5 hrs', '2026-10-15|8:00 AM|9:00 AM|10:30 AM|2 hrs',
-    '2026-10-16|8:30 AM|9:30 AM|11:00 AM|2 hrs', '2026-10-17|9:00 AM|10:00 AM|11:30 AM|2 hrs', '2026-10-18|10:00 AM|11:00 AM|12:30 PM|2 hrs',
-    '2026-10-19|11:00 AM|Noon|1:30 PM|2 hrs', '2026-10-20|Noon|1:00 PM|2:30 PM|2 hrs', '2026-10-21|1:00 PM|2:00 PM|3:30 PM|2 hrs',
-    '2026-10-22|2:00 PM|3:00 PM|4:30 PM|2 hrs', '2026-10-23|3:00 PM|4:00 PM|5:30 PM|2.5 hrs', '2026-10-24|3:30 PM|4:30 PM|6:00 PM|2.5 hrs',
-    '2026-10-25|4:00 AM|5:00 AM|6:30 AM|2.5 hrs', '2026-10-26|5:00 AM|6:00 AM|7:30 AM|3 hrs', '2026-10-27|5:30 AM|6:30 AM|8:00 AM|3 hrs',
-    '2026-10-28|6:30 AM|7:30 AM|9:00 AM|3 hrs', '2026-10-29|7:00 AM|8:00 AM|9:30 AM|3 hrs', '2026-10-30|8:00 AM|9:00 AM|10:30 AM|2 hrs',
-    '2026-11-01|9:00 AM|10:00 AM|11:30 AM|2 hrs',
-    '2026-12-01|10:00 AM|11:00 AM|12:30 PM|2 hrs', '2026-12-02|11:00 AM|Noon|1:30 PM|2 hrs', '2026-12-03|Noon|1:00 PM|2:30 PM|2 hrs',
-    '2026-12-04|1:00 PM|2:00 PM|3:30 PM|2 hrs', '2026-12-05|2:00 PM|3:00 PM|4:30 PM|2 hrs', '2026-12-06|2:30 PM|3:30 PM|5:00 PM|2 hrs',
-    '2026-12-07|3:00 PM|4:00 PM|5:30 PM|2 hrs', '2026-12-08|3:30 PM|4:30 PM|6:00 PM|2 hrs', '2026-12-09|4:00 AM|5:00 AM|6:30 AM|2 hrs',
-    '2026-12-10|4:30 AM|5:30 AM|7:00 AM|2 hrs', '2026-12-11|5:30 AM|6:30 AM|8:00 AM|2 hrs', '2026-12-12|6:00 AM|7:00 AM|8:30 AM|2 hrs',
-    '2026-12-13|6:30 AM|7:30 AM|9:00 AM|2 hrs', '2026-12-14|7:00 AM|8:00 AM|9:30 AM|2 hrs', '2026-12-15|8:00 AM|9:00 AM|10:30 AM|2 hrs',
-    '2026-12-16|8:30 AM|9:30 AM|11:00 AM|2 hrs', '2026-12-17|9:30 AM|10:30 AM|Noon|2 hrs', '2026-12-18|10:30 AM|11:30 AM|1:00 PM|2 hrs',
-    '2026-12-19|Noon|1:00 PM|2:30 PM|2 hrs', '2026-12-20|1:00 PM|2:00 PM|3:30 PM|2 hrs', '2026-12-21|2:00 PM|3:00 PM|4:30 PM|2 hrs',
-    '2026-12-22|3:00 PM|4:00 PM|5:30 PM|2.5 hrs', '2026-12-23|3:30 PM|4:30 PM|6:00 PM|3 hrs', '2026-12-24|4:00 AM|5:00 AM|6:30 AM|3 hrs',
-    '2026-12-25|5:00 AM|6:00 AM|7:30 AM|3 hrs', '2026-12-26|6:00 AM|7:00 AM|8:30 AM|2.5 hrs', '2026-12-27|6:30 AM|7:30 AM|9:00 AM|2.5 hrs',
-    '2026-12-28|7:30 AM|8:30 AM|10:00 AM|2 hrs', '2026-12-29|8:30 AM|9:30 AM|11:00 AM|2 hrs', '2026-12-30|9:30 AM|10:30 AM|Noon|2 hrs',
-    '2026-12-31|10:30 AM|11:30 AM|1:00 PM|2 hrs'
-  ];
+  var BARGE_SCHEDULE_URL = 'https://docs.google.com/spreadsheets/d/1pG55Y_qApu-7Mm0AdGRZdOoKFwrnOP4EEe_3hgg7Yf4/gviz/tq?tqx=out:csv&gid=1838050786';
+  var BARGE_SCHEDULE = [];
+  var BARGE_SCHEDULE_READY = false;
+  var BARGE_SCHEDULE_ERROR = false;
+  var BARGE_SCHEDULE_PROMISE = null;
+  function parseCsvLine(line) {
+    var out = [], cur = '', i = 0, q = false;
+    while (i < line.length) {
+      var ch = line.charAt(i);
+      if (q) {
+        if (ch === '"') {
+          if (line.charAt(i + 1) === '"') { cur += '"'; i += 1; }
+          else q = false;
+        } else {
+          cur += ch;
+        }
+      } else if (ch === ',') {
+        out.push(cur); cur = '';
+      } else if (ch === '"') {
+        q = true;
+      } else {
+        cur += ch;
+      }
+      i += 1;
+    }
+    out.push(cur);
+    return out;
+  }
+  function csvToRows(csv) {
+    var rows = [], row = [], cur = '', i = 0, q = false;
+    for (i = 0; i < csv.length; i++) {
+      var ch = csv.charAt(i), next = csv.charAt(i + 1);
+      if (q) {
+        if (ch === '"' && next === '"') { cur += '"'; i++; }
+        else if (ch === '"') q = false;
+        else cur += ch;
+      } else if (ch === '"') {
+        q = true;
+      } else if (ch === ',') {
+        row.push(cur); cur = '';
+      } else if (ch === '\n') {
+        row.push(cur); rows.push(row); row = []; cur = '';
+      } else if (ch !== '\r') {
+        cur += ch;
+      }
+    }
+    row.push(cur);
+    rows.push(row);
+    return rows;
+  }
+  function normalizeDate(value) {
+    value = String(value || '').trim();
+    if (!value) return '';
+    var m = value.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
+    if (m) {
+      var year = m[3] ? (+m[3] < 100 ? 2000 + +m[3] : +m[3]) : 2026;
+      return year + '-' + ('0' + m[1]).slice(-2) + '-' + ('0' + m[2]).slice(-2);
+    }
+    m = value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
+    return '';
+  }
+  function loadBargeSchedule() {
+    if (BARGE_SCHEDULE_PROMISE) return BARGE_SCHEDULE_PROMISE;
+    BARGE_SCHEDULE_PROMISE = fetch(BARGE_SCHEDULE_URL, { cache: 'no-store' }).then(function (res) { return res.text(); }).then(function (csv) {
+      var rows = csvToRows(csv);
+      var data = [];
+      for (var i = 1; i < rows.length; i++) {
+        var r = rows[i];
+        if (!r || r.length < 8) continue;
+        var date = normalizeDate(r[1]);
+        var load = String(r[2] || '').trim();
+        var depart = String(r[3] || '').trim();
+        var arrive = String(r[4] || '').trim();
+        var time = String(r[5] || '').trim();
+        if (!date || !load || !depart || !arrive || !time) continue;
+        data.push({ date: date, load: load, depart: depart, arrive: arrive, time: time, fpDepart: String(r[6] || '').trim(), bcmArrival: String(r[7] || '').trim() });
+      }
+      BARGE_SCHEDULE = data;
+      BARGE_SCHEDULE_READY = true;
+      BARGE_SCHEDULE_ERROR = !data.length;
+      return data;
+    }).catch(function () {
+      BARGE_SCHEDULE = [];
+      BARGE_SCHEDULE_READY = true;
+      BARGE_SCHEDULE_ERROR = true;
+      return [];
+    });
+    return BARGE_SCHEDULE_PROMISE;
+  }
 
   /* ===================================================================== */
 
@@ -290,18 +354,22 @@
   function renderBarge() {
     var tbody = $('#bargeTable tbody');
     if (!tbody) return;
+    if (BARGE_SCHEDULE_ERROR) {
+      tbody.innerHTML = '<tr><td colspan="5">Schedule is temporarily unavailable. Please call 843-290-9336.</td></tr>';
+      return;
+    }
     var now = today(), lastMonth = -1, rows = [];
-    BARGE_SCHEDULE.forEach(function (line) {
-      var p = line.split('|'), d = parseDate(p[0]);
+    BARGE_SCHEDULE.forEach(function (item) {
+      var d = parseDate(item.date);
       if (d < now) return;
       if (d.getMonth() !== lastMonth) {
         lastMonth = d.getMonth();
         rows.push('<tr class="month"><td colspan="5">' + MONTHS_LONG[lastMonth] + ' ' + d.getFullYear() + '</td></tr>');
       }
       var isToday = d.getTime() === now.getTime();
-      rows.push('<tr' + (isToday ? ' class="today"' : '') + '><td>' + DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + (isToday ? ' (today)' : '') + '</td><td>' + p[1] + '</td><td>' + p[2] + '</td><td>' + p[3] + '</td><td>' + p[4] + '</td></tr>');
+      rows.push('<tr' + (isToday ? ' class="today"' : '') + '><td>' + DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + (isToday ? ' (today)' : '') + '</td><td>' + item.load + '</td><td>' + item.depart + '</td><td>' + item.arrive + '</td><td>' + item.time + '</td></tr>');
     });
-    tbody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="5">The next schedule is being posted. Call 843-290-9336 for dates.</td></tr>';
+    tbody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="5">Schedule is temporarily unavailable. Please call 843-290-9336.</td></tr>';
   }
 
   /* ---------- animation (GSAP) ---------- */
@@ -366,7 +434,7 @@
     var y = $('#year'); if (y) y.textContent = new Date().getFullYear();
     buildNav();
     renderEvents();
-    renderBarge();
+    loadBargeSchedule().then(function () { renderBarge(); });
     renderMusicSummary();
     renderMusicPage('all');
     initMusicFilters();
