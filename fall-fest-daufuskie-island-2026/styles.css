@@ -266,7 +266,7 @@ button{cursor:pointer}
 .fall-hero .music-hero-shade{display:none}
 .fall-hero .music-hero-inner{padding-top:clamp(32px,5vw,64px)}
 #overview .mgrid-3{align-items:stretch}
-#overview .mgrid-3 .panel > img{aspect-ratio:4/3;object-fit:cover}
+#overview .mgrid-3 .panel > img{width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;border-radius:var(--radius-sm);margin-bottom:20px}
 .crab-logo{background:#fff;border-radius:14px;padding:10px 14px;justify-self:center;margin-bottom:10px;width:100%;display:flex;justify-content:center}
 .crab-logo img{height:auto;width:100%;max-width:320px;margin-inline:auto}
 .hours-list{display:grid;gap:8px;margin:4px 0 2px}
