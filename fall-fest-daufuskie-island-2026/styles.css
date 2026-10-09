@@ -34,6 +34,9 @@ button{font:inherit;cursor:pointer}
 .btn-ghost{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.55)}
 .btn-ghost:hover{background:rgba(255,255,255,.18);color:#fff;border-color:#fff}
 .btn svg{width:18px;height:18px;flex:none}
+.btn-facebook{background:#1877f2;color:#fff;box-shadow:0 10px 24px rgba(24,119,242,.32)}
+.btn-facebook:hover{background:#0f5fd1;color:#fff}
+.btn-facebook svg{width:20px;height:20px}
 .site-header{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(255,253,249,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(27,74,139,.08);transition:transform .4s var(--ease),box-shadow .3s}
 .site-header.is-scrolled{box-shadow:0 6px 24px rgba(14,47,92,.08)}
 .site-header.is-hidden{transform:translateY(-100%)}
