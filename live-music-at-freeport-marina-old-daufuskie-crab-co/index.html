@@ -960,9 +960,12 @@
     var when = isCancelled
       ? labelDay + ', ' + display.month + ' ' + display.day + ' — no live music scheduled'
       : (start && end ? formatWhen(labelDay, date, start, end) : labelDay + ', ' + display.month + ' ' + display.day);
-    var safeArtist = isCancelled ? 'No live music' : (performer || 'To be announced');
+    var cancellationReason = notes.toLowerCase() === 'weather' ? 'weather' : notes;
+    var safeArtist = isCancelled
+      ? ('No live music' + (cancellationReason ? ' due to ' + cancellationReason : ''))
+      : (performer || 'To be announced');
     var safeDay = escapeHTML(labelDay);
-    var noteHtml = notes ? '<p class="show-note">' + escapeHTML(notes) + '</p>' : '';
+    var noteHtml = !isCancelled && notes ? '<p class="show-note">' + escapeHTML(notes) + '</p>' : '';
     var metaHtml = isCancelled
       ? '<span class="tag tag-cancelled">Cancelled</span>'
       : (slot === 'evening' ? '<span class="tag">Evening</span>' : '');
