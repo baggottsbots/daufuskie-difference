@@ -503,3 +503,13 @@ table.schedule tr.today td{background:rgba(223,58,47,.18)}
   .trip{grid-template-columns:1fr}
   .barge-cta{display:grid}
 }
+
+/* Live music: cancelled dates are notices, not booked performers. */
+.event.is-cancelled,.mrow.is-cancelled{background:#f5f2ed;border-color:#ddd1c3}
+.event.is-cancelled .event-date,.mrow.is-cancelled .event-date{background:#766c60}
+.event.is-cancelled .event-date small,.event.is-cancelled .event-date em,
+.mrow.is-cancelled .event-date small,.mrow.is-cancelled .event-date em{color:#f0e7dc}
+.event.is-cancelled h3,.mrow.is-cancelled h3{color:#514941}
+.event.is-cancelled .tag,.mrow .mtag.cancelled{background:#ece0d2;color:#654630}
+.event-note,.mrow-note{display:block;font-size:.93rem;line-height:1.4;color:var(--ink-soft);overflow-wrap:anywhere}
+.mrow-note{margin-top:4px;font-weight:600}
