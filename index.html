@@ -1454,7 +1454,7 @@
       var tag = cancelled
         ? '<span class="tag">Cancelled</span>'
         : (e.tag ? '<span class="tag">' + esc(e.tag) + '</span>' : (isNext ? '<span class="tag">Next up</span>' : ''));
-      var notes = e.notes ? '<span class="event-note">' + (cancelled ? 'Reason: ' : '') + esc(e.notes) + '</span>' : '';
+      var notes = !cancelled && e.notes ? '<span class="event-note">' + esc(e.notes) + '</span>' : '';
       return '<article class="' + cls + '">' +
         '<div class="event-date"><small>' + MONTHS[d.getMonth()] + '</small><b>' + d.getDate() + '</b><em>' + esc(e.day || DAYS[d.getDay()]) + '</em></div>' +
         '<div class="event-body"><h3>' + esc(musicTitle(e)) + '</h3>' +
@@ -1477,7 +1477,11 @@
   function isCancelled(e) { return /^(?:cancelled|canceled)$/i.test(String(e.artist || '').trim()); }
   function hasLiveMusic(e) { return !isCancelled(e) && !!e.start && !!e.end; }
   function musicTitle(e) {
-    if (isCancelled(e)) return 'No live music';
+    if (isCancelled(e)) {
+      var reason = String(e.notes || '').trim();
+      if (reason.toLowerCase() === 'weather') reason = 'weather';
+      return 'No live music' + (reason ? ' due to ' + reason : '');
+    }
     return isTba(e) ? 'Artist to be announced' : e.artist;
   }
   function musicTime(e) {
@@ -1555,7 +1559,7 @@
             '<div class="event-date"><small>' + MONTHS[d.getMonth()] + '</small><b>' + d.getDate() + '</b><em>' + esc(e.day || DAYS[d.getDay()]) + '</em></div>' +
             '<div class="mrow-main"><h3>' + esc(musicTitle(e)) + '</h3>' +
             '<span class="meta">' + dayLong(e, d) + (e.detail ? ' &middot; ' + esc(e.detail) : '') + '</span>' +
-            (e.notes ? '<span class="mrow-note">' + (cancelled ? 'Reason: ' : '') + esc(e.notes) + '</span>' : '') +
+            (!cancelled && e.notes ? '<span class="mrow-note">' + esc(e.notes) + '</span>' : '') +
             (tags ? '<div class="mtags">' + tags + '</div>' : '') + '</div>' +
             '<div class="mrow-time tabular"><span>' + (cancelled ? 'Cancelled' : evening ? 'Evening' : 'Afternoon') + '</span>' + esc(musicTime(e)) + '</div>' +
             '</article>';
