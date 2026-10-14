@@ -271,3 +271,11 @@ button{font:inherit;cursor:pointer}
   .show-date{height:56px}
   .show-when{grid-column:2;text-align:left;display:flex;flex-wrap:wrap;gap:4px 12px}
 }
+
+/* Sheet status and notes: cancellations are not performers. */
+.show.is-cancelled{background:#f5f2ed;border-color:#d9cfc3}
+.show.is-cancelled .show-date{background:#766c60}
+.show.is-cancelled .show-date span{color:#f0e7dc}
+.show.is-cancelled .show-main h4{color:#514941}
+.show.is-cancelled .tag-cancelled{background:#ece0d2;color:#654630}
+.show-note{margin-top:5px;font-size:.92rem;line-height:1.45;color:var(--ink-soft);overflow-wrap:anywhere}
