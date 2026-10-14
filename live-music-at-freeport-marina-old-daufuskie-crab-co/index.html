@@ -822,20 +822,17 @@
 
   function updateSummaryChips(rows) {
     var now = getNYDateTime();
-    var upcoming = 0;
-    var announced = 0;
-    var evening = 0;
-    var firstUpcoming = null;
-    var lastUpcoming = null;
+    var upcoming = 0, announced = 0, evening = 0;
+    var firstUpcoming = null, lastUpcoming = null;
     rows.forEach(function (r) {
-      var isUpcoming = r.date > now.date || (r.date === now.date && r.endMinutes > now.minutes);
-      if (isUpcoming) {
-        upcoming++;
-        if (r.tba === '0') announced++;
-        if (r.slot === 'evening') evening++;
-        if (!firstUpcoming || r.date < firstUpcoming.date || (r.date === firstUpcoming.date && r.startMinutes < firstUpcoming.startMinutes)) firstUpcoming = r;
-        if (!lastUpcoming || r.date > lastUpcoming.date || (r.date === lastUpcoming.date && r.endMinutes > lastUpcoming.endMinutes)) lastUpcoming = r;
-      }
+      // Cancelled slots and event-only notices are not live music performances.
+      var isUpcoming = r.isMusic && (r.date > now.date || (r.date === now.date && r.endMinutes > now.minutes));
+      if (!isUpcoming) return;
+      upcoming++;
+      if (r.tba === '0') announced++;
+      if (r.slot === 'evening') evening++;
+      if (!firstUpcoming || r.date < firstUpcoming.date || (r.date === firstUpcoming.date && r.startMinutes < firstUpcoming.startMinutes)) firstUpcoming = r;
+      if (!lastUpcoming || r.date > lastUpcoming.date || (r.date === lastUpcoming.date && r.endMinutes > lastUpcoming.endMinutes)) lastUpcoming = r;
     });
 
     var rangeChip = $('#scheduleRangeChip');
@@ -861,7 +858,7 @@
     var now = getNYDateTime();
     var next = null;
     rows.forEach(function (r) {
-      if (next) return;
+      if (next || !r.isMusic) return;
       if (r.date > now.date || (r.date === now.date && r.endMinutes > now.minutes)) next = r;
     });
     var name = $('#nextName'), when = $('#nextWhen');
@@ -879,11 +876,11 @@
     var nextFound = false;
     $$('.show').forEach(function (r) {
       var date = r.getAttribute('data-date') || '';
-      var endMinutes = parseInt(r.getAttribute('data-end-minutes') || '0', 10) || 0;
+      var endMinutes = parseInt(r.getAttribute('data-end-minutes') || '1439', 10);
       var isPast = !!date && (date < now.date || (date === now.date && endMinutes <= now.minutes));
       var isUpcoming = !!date && (date > now.date || (date === now.date && endMinutes > now.minutes));
       r.classList.toggle('is-past', isPast);
-      if (!nextFound && isUpcoming) {
+      if (!nextFound && isUpcoming && r.getAttribute('data-music') === '1') {
         r.classList.add('is-next');
         nextFound = true;
       } else {
@@ -898,7 +895,10 @@
     var weeks = $$('.week');
     $$('.filter').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-filter') === filter)); });
     $$('.show').forEach(function (r) {
-      var ok = filter === 'all' || (filter === 'announced' ? r.getAttribute('data-tba') === '0' : r.getAttribute('data-slot') === filter);
+      var isMusic = r.getAttribute('data-music') === '1';
+      var ok = filter === 'all' || (filter === 'announced'
+        ? isMusic && r.getAttribute('data-tba') === '0'
+        : isMusic && r.getAttribute('data-slot') === filter);
       r.hidden = !ok;
     });
     weeks.forEach(function (w) { w.hidden = !$$('.show:not([hidden])', w).length; });
@@ -939,35 +939,58 @@
     var day = String(item.Day || item.day || '').trim();
     var date = parseSheetDate(item.Date || item.date);
     var performer = String(item.Performer || item.performer || '').trim();
-    var startValue = item['Time Start'] || item['Time Start '] || item['Start'] || item.start || '';
+    var notes = String(item.Notes || item.notes || item.Note || item.note || '').trim();
+    var startValue = item['Time Start'] || item['Time Start '] || item.Start || item.start || '';
     var endValue = item.End || item.end || '';
     var start = String(startValue && typeof startValue === 'object' && startValue.f != null ? startValue.f : startValue).trim();
     var end = String(endValue && typeof endValue === 'object' && endValue.f != null ? endValue.f : endValue).trim();
-    if (!date || !start || !end) return null;
-    var performerClean = performer.toLowerCase();
-    var announced = performer && performerClean !== 'tba' && performerClean !== 'tbd' && performerClean !== 'to be announced';
+    if (!date) return null;
+    var isCancelled = /^(cancelled|canceled)$/i.test(performer);
+    var isUnannounced = !performer || /^(tba|tbd|to be announced)$/i.test(performer);
+    var announced = !isCancelled && !isUnannounced;
+    // Show a cancellation or event note even if the time cells are blank.
+    if ((!start || !end) && !isCancelled && !notes) return null;
+    var isMusic = !isCancelled && !!start && !!end;
     var tba = announced ? '0' : '1';
-    var slot = (timeToMinutes(start) >= 17 * 60) ? 'evening' : 'afternoon';
+    var startMinutes = timeToMinutes(start);
+    var endMinutes = timeToMinutes(end);
+    var slot = isMusic ? (startMinutes !== null && startMinutes >= 17 * 60 ? 'evening' : 'afternoon') : '';
     var display = formatDisplayDate(date);
-    var when = formatWhen(day || formatDayLabel(date), date, start, end);
-    var safeArtist = performer || 'To be announced';
-    var safeDay = escapeHTML(day || formatDayLabel(date));
-    var safeStart = escapeHTML(start);
-    var safeEnd = escapeHTML(end);
+    var labelDay = day || formatDayLabel(date);
+    var when = isCancelled
+      ? labelDay + ', ' + display.month + ' ' + display.day + ' — no live music scheduled'
+      : (start && end ? formatWhen(labelDay, date, start, end) : labelDay + ', ' + display.month + ' ' + display.day);
+    var safeArtist = isCancelled ? 'No live music' : (performer || 'To be announced');
+    var safeDay = escapeHTML(labelDay);
+    var noteHtml = notes ? '<p class="show-note">' + escapeHTML(notes) + '</p>' : '';
+    var metaHtml = isCancelled
+      ? '<span class="tag tag-cancelled">Cancelled</span>'
+      : (slot === 'evening' ? '<span class="tag">Evening</span>' : '');
+    var displayTime = isCancelled ? 'No music scheduled' : (start && end ? escapeHTML(start) + ' to ' + escapeHTML(end) : 'Time to be announced');
     return {
       date: date,
       start: start,
       end: end,
-      startMinutes: timeToMinutes(start) || 0,
-      endMinutes: timeToMinutes(end) || 0,
+      startMinutes: startMinutes === null ? 0 : startMinutes,
+      endMinutes: endMinutes === null ? 1439 : endMinutes,
       slot: slot,
       tba: tba,
+      isMusic: isMusic,
+      cancelled: isCancelled,
+      notes: notes,
       artist: safeArtist,
       when: when,
-      html: '<li class="show' + (tba === '1' ? ' is-tba' : '') + '" data-date="' + escapeHTML(date) + '" data-start="' + escapeHTML(start.replace(/\s+/g, '')) + '" data-end="' + escapeHTML(end.replace(/\s+/g, '')) + '" data-end-minutes="' + escapeHTML(String(timeToMinutes(end) || 0)) + '" data-slot="' + escapeHTML(slot) + '" data-tba="' + escapeHTML(tba) + '" data-artist="' + escapeHTML(safeArtist) + '" data-when="' + escapeHTML(when) + '">' +
+      html: '<li class="show' + (isCancelled ? ' is-cancelled' : (tba === '1' ? ' is-tba' : '')) +
+        '" data-date="' + escapeHTML(date) +
+        '" data-end-minutes="' + escapeHTML(String(endMinutes === null ? 1439 : endMinutes)) +
+        '" data-slot="' + escapeHTML(slot) +
+        '" data-tba="' + tba +
+        '" data-music="' + (isMusic ? '1' : '0') +
+        '" data-artist="' + escapeHTML(safeArtist) +
+        '" data-when="' + escapeHTML(when) + '">' +
         '<time class="show-date" datetime="' + escapeHTML(date) + '"><span>' + escapeHTML(display.month) + '</span><b>' + escapeHTML(display.day) + '</b></time>' +
-        '<div class="show-main"><h4>' + escapeHTML(safeArtist) + '</h4><div class="show-meta">' + (slot === 'evening' ? '<span class="tag">Evening</span>' : '') + '</div></div>' +
-        '<div class="show-when"><span class="day">' + safeDay + '</span><span class="time tabular">' + safeStart + ' to ' + safeEnd + '</span></div>' +
+        '<div class="show-main"><h4>' + escapeHTML(safeArtist) + '</h4><div class="show-meta">' + metaHtml + '</div>' + noteHtml + '</div>' +
+        '<div class="show-when"><span class="day">' + safeDay + '</span><span class="time tabular">' + displayTime + '</span></div>' +
       '</li>'
     };
   }
@@ -1021,14 +1044,16 @@
           throw new Error('Invalid gviz table response');
         }
         var rows = normalizeSheetRows(response).map(buildSheetRow).filter(Boolean);
-        // Display music only through the last confirmed performer date.
-        // Later TBA slots stay in the Google Sheet, but are not published.
-        var latestConfirmedDate = '';
+        // Publish through the last confirmed performer, cancellation, or dated
+        // event/note. Ordinary future TBA-only slots remain unpublished.
+        var latestPublishedDate = '';
         rows.forEach(function (row) {
-          if (row.tba === '0' && row.date > latestConfirmedDate) latestConfirmedDate = row.date;
+          if ((row.tba === '0' || row.cancelled || row.notes) && row.date > latestPublishedDate) {
+            latestPublishedDate = row.date;
+          }
         });
-        rows = latestConfirmedDate ? rows.filter(function (row) {
-          return row.date <= latestConfirmedDate;
+        rows = latestPublishedDate ? rows.filter(function (row) {
+          return row.date <= latestPublishedDate;
         }) : [];
         scheduleState.rows = rows;
         if (!rows.length) {
