@@ -1021,6 +1021,15 @@
           throw new Error('Invalid gviz table response');
         }
         var rows = normalizeSheetRows(response).map(buildSheetRow).filter(Boolean);
+        // Display music only through the last confirmed performer date.
+        // Later TBA slots stay in the Google Sheet, but are not published.
+        var latestConfirmedDate = '';
+        rows.forEach(function (row) {
+          if (row.tba === '0' && row.date > latestConfirmedDate) latestConfirmedDate = row.date;
+        });
+        rows = latestConfirmedDate ? rows.filter(function (row) {
+          return row.date <= latestConfirmedDate;
+        }) : [];
         scheduleState.rows = rows;
         if (!rows.length) {
           container.innerHTML = '<div class="week" data-reveal><h3 class="week-title">No entries yet</h3><ul class="show-list"><li class="show"><div class="show-main"><h4>The schedule will appear here once the sheet has rows.</h4><div class="show-meta"></div></div></li></ul></div>';
