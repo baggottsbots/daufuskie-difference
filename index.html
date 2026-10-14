@@ -1362,7 +1362,15 @@
     events.sort(function (a, b) {
       return a.date.localeCompare(b.date) || toMinutes(a.start) - toMinutes(b.start);
     });
-    return events;
+    // Stop the public lineup at the latest date with a confirmed performer.
+    // Placeholders beyond that date remain only in Google Sheets until booked.
+    var latestConfirmedDate = '';
+    events.forEach(function (e) {
+      if (!isTba(e) && e.date > latestConfirmedDate) latestConfirmedDate = e.date;
+    });
+    return latestConfirmedDate ? events.filter(function (e) {
+      return e.date <= latestConfirmedDate;
+    }) : [];
   }
 
   function musicEmptyNotice() {
