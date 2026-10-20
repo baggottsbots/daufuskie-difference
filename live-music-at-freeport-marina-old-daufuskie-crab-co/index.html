@@ -714,8 +714,11 @@
   function parseSheetDate(value) {
     if (!value) return null;
     if (typeof value === 'string') {
-      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-      var m = value.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);
+      var s = value.trim();
+      var mdy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (mdy) return [mdy[3], String(parseInt(mdy[1], 10)).padStart(2, '0'), String(parseInt(mdy[2], 10)).padStart(2, '0')].join('-');
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      var m = s.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);
       if (m) return [m[1], String(parseInt(m[2], 10) + 1).padStart(2, '0'), String(m[3]).padStart(2, '0')].join('-');
     }
     if (Object.prototype.toString.call(value) === '[object Date]' && !isNaN(value.getTime())) {
@@ -738,10 +741,11 @@
 
   function formatDisplayDate(dateStr) {
     var d = new Date(dateStr + 'T12:00:00');
-    var parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' }).formatToParts(d);
+    var parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric' }).formatToParts(d);
     var month = parts.find(function (p) { return p.type === 'month'; }).value;
     var day = parts.find(function (p) { return p.type === 'day'; }).value;
-    return { month: month, day: day };
+    var year = parts.find(function (p) { return p.type === 'year'; }).value;
+    return { month: month, day: day, year: year };
   }
 
   function escapeHTML(value) {
@@ -751,7 +755,8 @@
   }
 
   function formatWhen(day, dateStr, start, end) {
-    return day + ', ' + formatDisplayDate(dateStr).month + ' ' + formatDisplayDate(dateStr).day + ' from ' + start + ' to ' + end;
+    var display = formatDisplayDate(dateStr);
+    return day + ', ' + display.month + ' ' + display.day + ' ' + display.year + ' from ' + start + ' to ' + end;
   }
 
   function timeToMinutes(text) {
@@ -787,22 +792,9 @@
       return;
     }
     rows.sort(function (a, b) { return a.date.localeCompare(b.date) || (a.startMinutes - b.startMinutes); });
-    var html = '';
-    var i = 0;
-    while (i < rows.length) {
-      var start = rows[i].date, end = rows[i].date, bucket = [];
-      bucket.push(rows[i]);
-      i++;
-      while (i < rows.length) {
-        var current = new Date(rows[i].date + 'T12:00:00');
-        var prev = new Date(bucket[bucket.length - 1].date + 'T12:00:00');
-        var diff = Math.floor((current - prev) / 86400000);
-        if (diff <= 3) { bucket.push(rows[i]); end = rows[i].date; i++; } else break;
-      }
-      html += '<div class="week" data-reveal><h3 class="week-title">' + escapeHTML(buildWeekLabel(start, end)) + '</h3><ul class="show-list">';
-      bucket.forEach(function (row) { html += row.html; });
-      html += '</ul></div>';
-    }
+    var html = '<div class="week" data-reveal><h3 class="week-title">Live schedule</h3><ul class="show-list">';
+    rows.forEach(function (row) { html += row.html; });
+    html += '</ul></div>';
     container.innerHTML = html;
     applyScheduleState(rows);
     initFilters();
@@ -825,12 +817,11 @@
     var upcoming = 0, announced = 0, evening = 0;
     var firstUpcoming = null, lastUpcoming = null;
     rows.forEach(function (r) {
-      // Cancelled slots and event-only notices are not live music performances.
-      var isUpcoming = r.isMusic && (r.date > now.date || (r.date === now.date && r.endMinutes > now.minutes));
-      if (!isUpcoming) return;
+      var isUpcoming = r.date > now.date || (r.date === now.date && r.endMinutes > now.minutes);
+      if (!isUpcoming || r.cancelled) return;
       upcoming++;
-      if (r.tba === '0') announced++;
-      if (r.slot === 'evening') evening++;
+      if (r.tba === '0' && !r.cancelled) announced++;
+      if (r.slot === 'evening' && !r.cancelled) evening++;
       if (!firstUpcoming || r.date < firstUpcoming.date || (r.date === firstUpcoming.date && r.startMinutes < firstUpcoming.startMinutes)) firstUpcoming = r;
       if (!lastUpcoming || r.date > lastUpcoming.date || (r.date === lastUpcoming.date && r.endMinutes > lastUpcoming.endMinutes)) lastUpcoming = r;
     });
@@ -858,7 +849,7 @@
     var now = getNYDateTime();
     var next = null;
     rows.forEach(function (r) {
-      if (next || !r.isMusic) return;
+      if (next || r.cancelled) return;
       if (r.date > now.date || (r.date === now.date && r.endMinutes > now.minutes)) next = r;
     });
     var name = $('#nextName'), when = $('#nextWhen');
@@ -880,7 +871,7 @@
       var isPast = !!date && (date < now.date || (date === now.date && endMinutes <= now.minutes));
       var isUpcoming = !!date && (date > now.date || (date === now.date && endMinutes > now.minutes));
       r.classList.toggle('is-past', isPast);
-      if (!nextFound && isUpcoming && r.getAttribute('data-music') === '1') {
+      if (!nextFound && isUpcoming && r.getAttribute('data-cancelled') !== '1') {
         r.classList.add('is-next');
         nextFound = true;
       } else {
@@ -919,57 +910,34 @@
   }
 
   function normalizeSheetRows(result) {
-    if (!result || !result.table || !Array.isArray(result.table.rows)) return [];
-    var cols = Array.isArray(result.table.cols) ? result.table.cols : [];
-    var labels = cols.map(function (col) { return col && (col.label || col.id || ''); });
-    return result.table.rows.map(function (row) {
-      var obj = {};
-      (row.c || []).forEach(function (cell, idx) {
-        var key = labels[idx];
-        if (!key) return;
-        var value = cell ? (cell.f != null && cell.f !== '' ? cell.f : cell.v) : '';
-        if (cell && cell.v && typeof cell.v === 'string' && /^Date\(\d{4},\d{1,2},\d{1,2}\)$/.test(cell.v)) value = cell.v;
-        obj[key] = value;
-      });
-      return obj;
-    });
+    if (!result || !Array.isArray(result.data)) return [];
+    return result.data.slice();
   }
 
   function buildSheetRow(item) {
-    var day = String(item.Day || item.day || '').trim();
-    var date = parseSheetDate(item.Date || item.date);
-    var performer = String(item.Performer || item.performer || '').trim();
-    var notes = String(item.Notes || item.notes || item.Note || item.note || '').trim();
-    var startValue = item['Time Start'] || item['Time Start '] || item.Start || item.start || '';
-    var endValue = item.End || item.end || '';
+    var day = String(item.Day || '').trim();
+    var date = parseSheetDate(item.Date);
+    var performer = String(item.Performer || '').trim();
+    var notes = String(item.Notes || '').trim();
+    var startValue = item['Time Start'] || '';
+    var endValue = item.End || '';
     var start = String(startValue && typeof startValue === 'object' && startValue.f != null ? startValue.f : startValue).trim();
     var end = String(endValue && typeof endValue === 'object' && endValue.f != null ? endValue.f : endValue).trim();
     if (!date) return null;
-    var isCancelled = /^(cancelled|canceled)$/i.test(performer);
-    var isUnannounced = !performer || /^(tba|tbd|to be announced)$/i.test(performer);
-    var announced = !isCancelled && !isUnannounced;
-    // Show a cancellation or event note even if the time cells are blank.
-    if ((!start || !end) && !isCancelled && !notes) return null;
-    var isMusic = !isCancelled && !!start && !!end;
-    var tba = announced ? '0' : '1';
+    var isCancelled = /canceled/i.test(notes);
+    var isTba = /^(to be announced)$/i.test(performer);
     var startMinutes = timeToMinutes(start);
     var endMinutes = timeToMinutes(end);
-    var slot = isMusic ? (startMinutes !== null && startMinutes >= 17 * 60 ? 'evening' : 'afternoon') : '';
+    var slot = startMinutes !== null && startMinutes >= 17 * 60 ? 'evening' : 'afternoon';
     var display = formatDisplayDate(date);
     var labelDay = day || formatDayLabel(date);
-    var when = isCancelled
-      ? labelDay + ', ' + display.month + ' ' + display.day + ' — no live music scheduled'
-      : (start && end ? formatWhen(labelDay, date, start, end) : labelDay + ', ' + display.month + ' ' + display.day);
-    var cancellationReason = notes.toLowerCase() === 'weather' ? 'weather' : notes;
-    var safeArtist = isCancelled
-      ? ('No live music' + (cancellationReason ? ' due to ' + cancellationReason : ''))
-      : (performer || 'To be announced');
-    var safeDay = escapeHTML(labelDay);
-    var noteHtml = !isCancelled && notes ? '<p class="show-note">' + escapeHTML(notes) + '</p>' : '';
-    var metaHtml = isCancelled
-      ? '<span class="tag tag-cancelled">Cancelled</span>'
-      : (slot === 'evening' ? '<span class="tag">Evening</span>' : '');
-    var displayTime = isCancelled ? 'No music scheduled' : (start && end ? escapeHTML(start) + ' to ' + escapeHTML(end) : 'Time to be announced');
+    var when = labelDay + ', ' + display.month + ' ' + display.day + ' ' + display.year + ' from ' + start + ' to ' + end;
+    var artistLabel = isTba ? 'TBA' : (performer || 'TBA');
+    var noteHtml = notes ? '<p class="show-note">' + escapeHTML(notes) + '</p>' : '';
+    var metaHtml = '';
+    if (isCancelled) metaHtml = '<span class="tag tag-cancelled">Cancelled</span>';
+    else if (isTba) metaHtml = '<span class="tag">TBA</span>';
+    else if (slot === 'evening') metaHtml = '<span class="tag">Evening</span>';
     return {
       date: date,
       start: start,
@@ -977,23 +945,24 @@
       startMinutes: startMinutes === null ? 0 : startMinutes,
       endMinutes: endMinutes === null ? 1439 : endMinutes,
       slot: slot,
-      tba: tba,
-      isMusic: isMusic,
+      tba: isTba ? '1' : '0',
+      isMusic: !!(start && end) && !isCancelled,
       cancelled: isCancelled,
       notes: notes,
-      artist: safeArtist,
+      artist: artistLabel,
       when: when,
-      html: '<li class="show' + (isCancelled ? ' is-cancelled' : (tba === '1' ? ' is-tba' : '')) +
+      html: '<li class="show' + (isCancelled ? ' is-cancelled' : (isTba ? ' is-tba' : '')) +
         '" data-date="' + escapeHTML(date) +
         '" data-end-minutes="' + escapeHTML(String(endMinutes === null ? 1439 : endMinutes)) +
         '" data-slot="' + escapeHTML(slot) +
-        '" data-tba="' + tba +
-        '" data-music="' + (isMusic ? '1' : '0') +
-        '" data-artist="' + escapeHTML(safeArtist) +
+        '" data-tba="' + (isTba ? '1' : '0') +
+        '" data-music="' + ((start && end && !isCancelled) ? '1' : '0') +
+        '" data-cancelled="' + (isCancelled ? '1' : '0') +
+        '" data-artist="' + escapeHTML(artistLabel) +
         '" data-when="' + escapeHTML(when) + '">' +
         '<time class="show-date" datetime="' + escapeHTML(date) + '"><span>' + escapeHTML(display.month) + '</span><b>' + escapeHTML(display.day) + '</b></time>' +
-        '<div class="show-main"><h4>' + escapeHTML(safeArtist) + '</h4><div class="show-meta">' + metaHtml + '</div>' + noteHtml + '</div>' +
-        '<div class="show-when"><span class="day">' + safeDay + '</span><span class="time tabular">' + displayTime + '</span></div>' +
+        '<div class="show-main"><h4>' + escapeHTML(artistLabel) + '</h4><div class="show-meta">' + metaHtml + '</div>' + noteHtml + '</div>' +
+        '<div class="show-when"><span class="day">' + escapeHTML(labelDay) + '</span><span class="time tabular">' + escapeHTML(display.month + ' ' + display.day + ' ' + display.year) + '<br>' + escapeHTML(start + ' to ' + end) + '</span></div>' +
       '</li>'
     };
   }
@@ -1003,30 +972,11 @@
     var fallback = $('#scheduleFallback');
     if (!container) return;
 
-    var callbackName = '_gvizScheduleCb_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
-    var script = document.createElement('script');
-    var sheetId = '1UpAYvk__51Obgm2GkAPSMNoNLTU8fteYQld7qbi2VJ8';
-    var sheetTab = 'music_schedule';
-    var gid = '1838050786';
-    var url = 'https://docs.google.com/spreadsheets/d/' + sheetId + '/gviz/tq?sheet=' + encodeURIComponent(sheetTab) + '&gid=' + encodeURIComponent(gid) + '&tqx=responseHandler:' + encodeURIComponent(callbackName);
-
-    var timedOut = false;
-    var timeoutId = setTimeout(function () {
-      timedOut = true;
-      cleanup();
-      handleError();
-    }, 15000);
-
-    function cleanup() {
-      clearTimeout(timeoutId);
-      if (script && script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-      try {
-        delete window[callbackName];
-      } catch (e) {
-        window[callbackName] = undefined;
-      }
+    var url = document.querySelector('meta[name="sheet-data-url"]')?.content;
+    if (!url) {
+      if (fallback) fallback.hidden = false;
+      container.innerHTML = '';
+      return;
     }
 
     function handleError() {
@@ -1039,53 +989,32 @@
       updateNextUp([]);
     }
 
-    window[callbackName] = function (response) {
-      if (timedOut) return;
-      cleanup();
-      try {
-        if (!response || !response.table || !Array.isArray(response.table.rows)) {
-          throw new Error('Invalid gviz table response');
-        }
-        var rows = normalizeSheetRows(response).map(buildSheetRow).filter(Boolean);
-        // Publish through the last confirmed performer, cancellation, or dated
-        // event/note. Ordinary future TBA-only slots remain unpublished.
-        var latestPublishedDate = '';
-        rows.forEach(function (row) {
-          if ((row.tba === '0' || row.cancelled || row.notes) && row.date > latestPublishedDate) {
-            latestPublishedDate = row.date;
-          }
-        });
-        rows = latestPublishedDate ? rows.filter(function (row) {
-          return row.date <= latestPublishedDate;
-        }) : [];
-        scheduleState.rows = rows;
-        if (!rows.length) {
-          container.innerHTML = '<div class="week" data-reveal><h3 class="week-title">No entries yet</h3><ul class="show-list"><li class="show"><div class="show-main"><h4>The schedule will appear here once the sheet has rows.</h4><div class="show-meta"></div></div></li></ul></div>';
-          if (fallback) fallback.hidden = true;
-          applyScheduleState([]);
-          initFilters();
-          updateNextUp([]);
-          return;
-        }
-        renderSchedule(rows);
-      } catch (err) {
-        handleError();
+    fetch(url).then(function (r) { return r.json(); }).then(function (result) {
+      if (!result || !Array.isArray(result.data)) {
+        throw new Error('Invalid sheet data');
       }
-    };
-
-    script.onerror = function () {
-      if (timedOut) return;
-      cleanup();
+      var now = getNYDateTime();
+      var rows = result.data.map(buildSheetRow).filter(Boolean).filter(function (row) {
+        return row.date > now.date || (row.date === now.date && row.endMinutes > now.minutes);
+      });
+      scheduleState.rows = rows;
+      if (!rows.length) {
+        container.innerHTML = '<div class="week" data-reveal><h3 class="week-title">No entries yet</h3><ul class="show-list"><li class="show"><div class="show-main"><h4>The schedule will appear here once the sheet has rows.</h4><div class="show-meta"></div></div></li></ul></div>';
+        if (fallback) fallback.hidden = true;
+        applyScheduleState([]);
+        initFilters();
+        updateNextUp([]);
+        return;
+      }
+      renderSchedule(rows);
+    }).catch(function () {
       handleError();
-    };
-
-    script.src = url;
-    document.head.appendChild(script);
+    });
   }
 
   function initSchedule() {
     fetchSchedule();
-    setInterval(fetchSchedule, 300000);
+    setInterval(fetchSchedule, 4000);
   }
 
   /* ---------- boot ---------- */
