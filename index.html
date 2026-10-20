@@ -1125,9 +1125,9 @@
   // No artist names, dates or times are stored in this page.
   var MUSIC_EVENTS = [];
   var MUSIC_SCHEDULE_STATE = 'loading';
-  var MUSIC_SHEET_ID = '1UpAYvk__51Obgm2GkAPSMNoNLTU8fteYQld7qbi2VJ8';
-  var MUSIC_SHEET_TAB = 'music_schedule';
-  var MUSIC_SHEET_GID = '1838050786';
+  var MUSIC_SHEET_ID = '1bJHigcBKVYaf7xcrkzg8RYiTxGG8nvxKmZuuethaGpo';
+  var MUSIC_SHEET_TAB = 'Sheet1';
+  var MUSIC_SHEET_GID = '0';
   var musicRequestInFlight = false;
   var lastMusicRefresh = 0;
 
@@ -1336,7 +1336,7 @@
     var labels = (response.table.cols || []).map(function (col) {
       return String((col && (col.label || col.id)) || '').trim().toLowerCase().replace(/\s+/g, ' ');
     });
-    if (['date', 'performer', 'time start', 'end'].some(function (x) { return labels.indexOf(x) < 0; })) {
+    if (['day', 'date', 'performer', 'time start', 'end', 'notes'].some(function (x) { return labels.indexOf(x) < 0; })) {
       throw new Error('Missing required music sheet columns');
     }
     var events = response.table.rows.map(function (row) {
@@ -1351,7 +1351,7 @@
       var start = cell('time start'), end = cell('end');
       var artist = cell('performer') || 'To be announced';
       var notes = cell('notes') || cell('note');
-      var cancelled = /^(?:cancelled|canceled)$/i.test(artist);
+      var cancelled = /canceled/i.test(notes);
       // Show cancellations and event-only notes even without a set time.
       if (!date || ((!start || !end) && !cancelled && !notes)) return null;
       var d = parseDate(date);
