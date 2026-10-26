@@ -75,6 +75,11 @@ button{font:inherit;cursor:pointer}
 .tabular{font-variant-numeric:tabular-nums}
 .photo{border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);background:var(--sand-deep)}
 .photo img{width:100%;height:100%;object-fit:cover}
+.photo-gallery{display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:stretch}
+.photo-gallery .photo{height:100%}
+.photo-gallery .photo:first-child{aspect-ratio:16/9}
+.photo-gallery .photo:last-child{aspect-ratio:4/5}
+.photo-gallery .photo img{width:100%;height:100%;object-fit:cover}
 .chip-row{display:flex;flex-wrap:wrap;gap:10px}
 .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;font-size:.9rem;font-weight:600;background:var(--blue-tint);color:var(--blue-deep)}
 
@@ -154,7 +159,8 @@ button{font:inherit;cursor:pointer}
 .intro-photo .stamp{position:absolute;left:-14px;bottom:26px;background:var(--shell);border-radius:14px;padding:14px 18px;box-shadow:var(--shadow);display:grid;gap:2px;max-width:240px}
 .intro-photo .stamp strong{font-family:var(--font-display);font-size:1.1rem;color:var(--blue-deep)}
 .intro-photo .stamp span{font-size:.9rem;color:var(--ink-soft)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:12px}
+.stats{display:grid;grid-template-columns:1fr;gap:18px;margin-top:12px}
+.stats .stat{max-width:260px}
 .stat{border-top:2px solid var(--blue);padding-top:14px}
 .stat b{display:block;font-family:var(--font-display);font-size:clamp(2rem,3.4vw,2.7rem);font-weight:800;color:var(--blue);line-height:1;letter-spacing:-.02em}
 .stat span{display:block;margin-top:6px;font-size:.95rem;color:var(--ink-soft)}
@@ -224,13 +230,17 @@ button{font:inherit;cursor:pointer}
   .intro-photo{order:-1}
   .intro-photo .photo{aspect-ratio:4/3;max-height:none}
   .intro-photo .stamp{left:16px}
+  .photo-gallery{grid-template-columns:1fr}
+  .photo-gallery .photo:first-child,
+  .photo-gallery .photo:last-child{aspect-ratio:4/5}
 }
 @media (max-width:640px){
   :root{--nav-h:64px}
   .brand img{height:42px}
   .section{padding-block:56px}
   .grid-2,.footer-grid{grid-template-columns:1fr}
-  .stats{grid-template-columns:repeat(3,1fr);gap:12px}
+  .stats{grid-template-columns:1fr;gap:12px}
+  .stats .stat{max-width:260px}
   .btn{padding:14px 22px}
   .hero-actions .btn,.home-cta .actions,.home-cta .actions .btn{width:100%}
 }
