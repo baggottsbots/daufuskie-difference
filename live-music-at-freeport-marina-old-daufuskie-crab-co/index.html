@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.prod.website-files.com">
 <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-<link rel="preload" as="image" href="https://cdn.prod.website-files.com/61a00ae79ec29a2438eefdff/669b9293628276b68d8f7139__IMG_0324%20(1).avif" fetchpriority="high">
+<link rel="preload" as="image" href="https://paymegpt.com/objects/quick-uploads/2/cee5232874db5c4f.jpg" fetchpriority="high">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Sans+3:wght@400;600;700&family=Caveat:wght@600&display=swap">
 
 <!-- Structured data: breadcrumb and page -->
@@ -284,7 +284,7 @@
       overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999999;font-family:system-ui,-apple-system,sans-serif;';
       function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
       var subTxt=successSubtext||('Thank you for purchasing '+pName+'.');
-      overlay.innerHTML='<div style="background:white;border-radius:16px;padding:40px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);"><div style="width:64px;height:64px;border-radius:50%;background:#dcfce7;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><h2 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#111827;">Payment Successful!</h2><p style="margin:0 0 24px;color:#6b7280;font-size:16px;">'+esc(subTxt)+'</p><button id="lp-pay-success-btn" style="padding:12px 32px;font-size:16px;font-weight:600;background:'+successBtnColor+';color:white;border:none;border-radius:8px;cursor:pointer;">'+esc(successBtnLabel)+'</button></div>';
+      overlay.innerHTML='<div style="background:white;border-radius:16px;padding:40px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);"><div style="width:64px;height:64px;border-radius:50%;background:#dcfce7;background:color-mix(in srgb,'+successBtnColor+' 12%,white);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="'+successBtnColor+'" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><h2 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#111827;">Payment Successful!</h2><p style="margin:0 0 24px;color:#6b7280;font-size:16px;">'+esc(subTxt)+'</p><button id="lp-pay-success-btn" style="padding:12px 32px;font-size:16px;font-weight:600;background:'+successBtnColor+';color:white;border:none;border-radius:8px;cursor:pointer;">'+esc(successBtnLabel)+'</button></div>';
       document.body.appendChild(overlay);
       var pBtn=document.getElementById('lp-pay-success-btn');
       if(pBtn){pBtn.addEventListener('click',function(){if(successRedirect){window.location.href=successRedirect;}else{overlay.remove();window.history.replaceState({},'',window.location.pathname);}});}
@@ -361,7 +361,7 @@
       overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:999999;font-family:system-ui,-apple-system,sans-serif;';
       function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
       var subTxt=successSubtext||'Thank you for your order.';
-      overlay.innerHTML='<div style="background:white;border-radius:16px;padding:40px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);"><div style="width:64px;height:64px;border-radius:50%;background:#dcfce7;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><h2 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#111827;">Order Confirmed!</h2><p style="margin:0 0 24px;color:#6b7280;font-size:16px;">'+esc(subTxt)+'</p><button id="lp-cart-success-btn" style="padding:12px 32px;font-size:16px;font-weight:600;background:'+successBtnColor+';color:white;border:none;border-radius:8px;cursor:pointer;">'+esc(successBtnLabel)+'</button></div>';
+      overlay.innerHTML='<div style="background:white;border-radius:16px;padding:40px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.15);"><div style="width:64px;height:64px;border-radius:50%;background:#dcfce7;background:color-mix(in srgb,'+successBtnColor+' 12%,white);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="'+successBtnColor+'" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><h2 style="margin:0 0 12px;font-size:24px;font-weight:700;color:#111827;">Order Confirmed!</h2><p style="margin:0 0 24px;color:#6b7280;font-size:16px;">'+esc(subTxt)+'</p><button id="lp-cart-success-btn" style="padding:12px 32px;font-size:16px;font-weight:600;background:'+successBtnColor+';color:white;border:none;border-radius:8px;cursor:pointer;">'+esc(successBtnLabel)+'</button></div>';
       document.body.appendChild(overlay);
       var cBtn=document.getElementById('lp-cart-success-btn');
       if(cBtn){cBtn.addEventListener('click',function(){if(successRedirect){window.location.href=successRedirect;}else{overlay.remove();window.history.replaceState({},'',window.location.pathname);}});}
@@ -416,7 +416,7 @@
 <!-- ===================== HERO ===================== -->
 <section class="music-hero" id="hero">
   <div class="music-hero-media">
-    <img src="https://cdn.prod.website-files.com/61a00ae79ec29a2438eefdff/669b9293628276b68d8f7139__IMG_0324%20(1).avif" alt="The Island Head ferry leaving a wake on the crossing from Hilton Head Island to Daufuskie Island" fetchpriority="high" decoding="async" width="1600" height="943">
+    <img src="https://paymegpt.com/objects/quick-uploads/2/cee5232874db5c4f.jpg" alt="Live music at Freeport Marina on Daufuskie Island" fetchpriority="high" decoding="async" width="1600" height="943">
   </div>
   <div class="music-hero-shade"></div>
   <div class="wrap music-hero-inner">
@@ -430,7 +430,6 @@
       <div class="chip-row">
         <span class="chip" id="scheduleRangeChip">Dates update from the live schedule</span>
         <span class="chip" id="upcomingShowsChip">Upcoming shows update live</span>
-        <span class="chip" id="eveningShowsChip">Evening shows update live</span>
       </div>
       <div class="hero-actions">
         <a class="btn btn-red" href="https://fareharbor.com/embeds/book/islandheadhhi-broadcreek/items/263471/calendar/?flow=467257&amp;full-items=yes&amp;ref=daufuskiedifference&amp;back=https://www.daufuskiedifference.com/" target="_blank" rel="noopener">Book Round-Trip Ferry
@@ -459,8 +458,6 @@
       <p>A few dates may still be listed as to be announced. As soon as the sheet updates, this page reflects the new schedule automatically.</p>
       <div class="stats">
         <div class="stat"><b class="tabular" id="upcomingCountStat">0</b><span>upcoming shows</span></div>
-        <div class="stat"><b class="tabular" id="announcedCountStat">0</b><span>announced artists</span></div>
-        <div class="stat"><b class="tabular" id="eveningCountStat">0</b><span>evening shows</span></div>
       </div>
     </div>
     <div class="intro-photo" data-reveal>
@@ -502,6 +499,22 @@
       </div>
     </div>
     <p class="note sched-note" id="scheduleFallback" hidden>We could not load the live schedule right now. Please check back shortly.</p>
+  </div>
+</section>
+
+<!-- ===================== PHOTO ===================== -->
+<section class="section bg-sand" id="crowd-photo">
+  <div class="wrap" data-reveal>
+    <span class="eyebrow">On the deck</span>
+    <h2 style="margin-bottom:24px">Good music, good crowd.</h2>
+    <div class="photo-gallery">
+      <div class="photo" style="box-shadow:var(--shadow-lg)">
+        <img src="https://paymegpt.com/objects/quick-uploads/2/76cb71149b661f48.jpg" alt="Band on stage with a crowd enjoying live music at Freeport Marina on Daufuskie Island" loading="lazy" decoding="async" width="1600" height="900" style="object-position:center 45%">
+      </div>
+      <div class="photo" style="box-shadow:var(--shadow-lg)">
+        <img src="https://paymegpt.com/objects/quick-uploads/2/332d46a06051d5e3.jpg" alt="Singer performing on stage at Freeport Marina on Daufuskie Island" loading="lazy" decoding="async" width="900" height="1125" style="object-position:center 30%">
+      </div>
+    </div>
   </div>
 </section>
 
