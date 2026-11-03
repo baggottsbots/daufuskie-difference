@@ -1316,7 +1316,7 @@
       var date = parseMusicSheetDate(row.Date || row.date || row.DATE);
       if (!date) return null;
       var performer = String(row.Performer || row.performer || '').trim() || 'To be announced';
-      var start = String(row['Time Start'] || row['time start'] || row['Time start'] || row.start || '').trim();
+      var start = String(row['Time Start'] || row['Start'] || row['time start'] || row.start || row.Start || '').trim();
       var end = String(row.End || row.end || '').trim();
       var notes = String(row.Notes || row.notes || '').trim();
       return {
@@ -1325,7 +1325,9 @@
         artist: performer,
         start: start,
         end: end,
-        notes: notes
+        notes: notes,
+        squareImage: String(row['Square Image'] || row['Square image'] || row.squareImage || '').trim(),
+        eventImage: String(row['Event Image'] || row['Event image'] || '').trim()
       };
     }).filter(Boolean);
     rows.sort(function (a, b) {
@@ -1407,6 +1409,7 @@
         : (isNext ? '<span class="tag">Next up</span>' : '');
       var notes = e.notes ? '<span class="event-note">' + esc(e.notes) + '</span>' : '';
       return '<article class="' + cls + '">' +
+        (e.squareImage ? '<div class="event-art"><img src="' + esc(e.squareImage) + '" alt="' + esc(e.artist) + ' live music at Old Daufuskie Crab Company" loading="lazy" decoding="async"></div>' : '') +
         '<div class="event-date"><small>' + MONTHS[d.getMonth()] + '</small><b>' + d.getDate() + '</b><em>' + esc(e.day || DAYS[d.getDay()]) + '</em></div>' +
         '<div class="event-body"><h3>' + esc(musicTitle(e)) + '</h3>' +
         '<span class="time">' + esc(musicTime(e)) + '</span>' +
