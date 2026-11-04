@@ -376,7 +376,7 @@
 <!-- =====================================================================
      HEADER / NAVIGATION (same as the home and ferry pages)
      ===================================================================== -->
-<header class="site-header" id="siteHeader">
+<header class="site-header" id="siteHeader" data-section="navbar">
   <div class="wrap nav-inner">
     <a class="brand" href="../" data-home aria-label="The Daufuskie Difference home">
       <img src="https://paymegpt.com/objects/quick-uploads/2/ec1cc753468c017c.png" alt="The Daufuskie Difference. An Island Like No Other." width="196" height="80">
@@ -414,7 +414,7 @@
 <main id="top">
 
 <!-- ===================== HERO ===================== -->
-<section class="music-hero" id="hero">
+<section class="music-hero" id="hero" data-section="hero">
   <div class="music-hero-media">
     <img src="https://paymegpt.com/objects/quick-uploads/2/cee5232874db5c4f.jpg" alt="Live music at Freeport Marina on Daufuskie Island" fetchpriority="high" decoding="async" width="1600" height="943">
   </div>
@@ -449,7 +449,7 @@
 </section>
 
 <!-- ===================== INTRO ===================== -->
-<section class="section bg-sand intro" id="about">
+<section class="section bg-sand intro" id="about" data-section="about">
   <div class="wrap two-col">
     <div class="intro-copy" data-reveal>
       <span class="eyebrow">How it works</span>
@@ -473,7 +473,7 @@
 </section>
 
 <!-- ===================== SCHEDULE ===================== -->
-<section class="section bg-white" id="schedule">
+<section class="section bg-white" id="schedule" data-section="schedule">
   <div class="wrap">
     <div class="section-head" data-reveal>
       <div>
@@ -498,7 +498,7 @@
 </section>
 
 <!-- ===================== PHOTO ===================== -->
-<section class="section bg-sand" id="crowd-photo">
+<section class="section bg-sand" id="crowd-photo" data-section="gallery">
   <div class="wrap" data-reveal>
     <span class="eyebrow">On the deck</span>
     <h2 style="margin-bottom:24px">Good music, good crowd.</h2>
@@ -514,7 +514,7 @@
 </section>
 
 <!-- ===================== PLAN YOUR DAY / NAVY BAND ===================== -->
-<section class="section bg-navy" id="plan" style="padding-block:clamp(56px,8vw,96px)">
+<section class="section bg-navy" id="plan" data-section="how-it-works" style="padding-block:clamp(56px,8vw,96px)">
   <div class="wrap">
     <div class="grid-2" data-reveal-group style="align-items:start">
       <div>
@@ -543,7 +543,7 @@
 </section>
 
 <!-- ===================== CONTACT ===================== -->
-<section class="section bg-sand" id="contact">
+<section class="section bg-sand" id="contact" data-section="contact">
   <div class="wrap">
     <div class="section-head" data-reveal>
       <div>
@@ -575,7 +575,7 @@
 </main>
 
 <!-- ===================== FOOTER ===================== -->
-<footer class="site-footer">
+<footer class="site-footer" data-section="footer">
   <div class="wrap">
     <div class="footer-grid">
       <div class="footer-brand">
@@ -613,7 +613,7 @@
 
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
-  var scheduleState = { rows: [], filtersBound: false, currentFilter: 'all' };
+  var scheduleState = { rows: [], filtersBound: false, currentFilter: 'all', sig: null };
   var refreshTimer = null;
 
   /* ---------- home URL ----------
@@ -927,7 +927,10 @@
     var date = parseSheetDate(item.Date);
     var performer = String(item.Performer || '').trim();
     var notes = String(item.Notes || '').trim();
-    var startValue = item['Time Start'] || '';
+    var eventImage = String(item['Event Image'] || item['Event image'] || '').trim();
+    var squareImage = String(item['Square Image'] || '').trim();
+    var fbEventLink = String(item['FB event link'] || '').trim();
+    var startValue = item['Time Start'] || item['Start'] || item.Start || '';
     var endValue = item.End || '';
     var start = String(startValue && typeof startValue === 'object' && startValue.f != null ? startValue.f : startValue).trim();
     var end = String(endValue && typeof endValue === 'object' && endValue.f != null ? endValue.f : endValue).trim();
@@ -946,6 +949,7 @@
     if (isCancelled) metaHtml = '<span class="tag tag-cancelled">Cancelled</span>';
     else if (isTba) metaHtml = '<span class="tag">TBA</span>';
     else if (slot === 'evening') metaHtml = '<span class="tag">Evening</span>';
+    var hasLink = /^https?:\/\//i.test(fbEventLink);
     return {
       date: date,
       start: start,
@@ -959,7 +963,10 @@
       notes: notes,
       artist: artistLabel,
       when: when,
-      html: '<li class="show' + (isCancelled ? ' is-cancelled' : (isTba ? ' is-tba' : '')) +
+      eventImage: eventImage,
+      squareImage: squareImage,
+      fbEventLink: fbEventLink,
+      html: '<li class="show' + (squareImage ? ' has-square' : '') + (hasLink ? ' has-link' : '') + (isCancelled ? ' is-cancelled' : (isTba ? ' is-tba' : '')) +
         '" data-date="' + escapeHTML(date) +
         '" data-end-minutes="' + escapeHTML(String(endMinutes === null ? 1439 : endMinutes)) +
         '" data-slot="' + escapeHTML(slot) +
@@ -968,8 +975,10 @@
         '" data-cancelled="' + (isCancelled ? '1' : '0') +
         '" data-artist="' + escapeHTML(artistLabel) +
         '" data-when="' + escapeHTML(when) + '">' +
+        (hasLink ? '<a class="show-link" href="' + escapeHTML(fbEventLink) + '" target="_blank" rel="noopener noreferrer" aria-label="View ' + escapeHTML(artistLabel) + ' on Facebook"></a>' : '') +
+        (squareImage ? '<div class="show-thumb"><img src="' + escapeHTML(squareImage) + '" alt="' + escapeHTML(artistLabel) + ' at Freeport Marina" loading="lazy" decoding="async"></div>' : '') +
         '<time class="show-date" datetime="' + escapeHTML(date) + '"><span>' + escapeHTML(display.month) + '</span><b>' + escapeHTML(display.day) + '</b></time>' +
-        '<div class="show-main"><h4>' + escapeHTML(artistLabel) + '</h4><div class="show-meta">' + metaHtml + '</div>' + noteHtml + '</div>' +
+        '<div class="show-main"><h4>' + escapeHTML(artistLabel) + '</h4><div class="show-meta">' + metaHtml + '</div>' + noteHtml + (hasLink ? '<span class="fb-event-link" aria-hidden="true">View event on Facebook</span>' : '') + '</div>' +
         '<div class="show-when"><span class="day">' + escapeHTML(labelDay) + '</span><span class="time tabular">' + escapeHTML(display.month + ' ' + display.day + ' ' + display.year) + '<br>' + escapeHTML(start + ' to ' + end) + '</span></div>' +
       '</li>'
     };
@@ -988,6 +997,7 @@
     }
 
     function handleError() {
+      scheduleState.sig = null;
       if (fallback) fallback.hidden = false;
       if (container) container.innerHTML = '';
       if ($('#nextName')) $('#nextName').textContent = 'Schedule temporarily unavailable';
@@ -1006,6 +1016,9 @@
         return row.date > now.date || (row.date === now.date && row.endMinutes > now.minutes);
       });
       scheduleState.rows = rows;
+      var sig = rows.map(function (r) { return r.html; }).join('|');
+      if (scheduleState.sig === sig) { applyScheduleState(rows); updateNextUp(rows); return; }
+      scheduleState.sig = sig;
       if (!rows.length) {
         container.innerHTML = '<div class="week" data-reveal><h3 class="week-title">No entries yet</h3><ul class="show-list"><li class="show"><div class="show-main"><h4>The schedule will appear here once the sheet has rows.</h4><div class="show-meta"></div></div></li></ul></div>';
         if (fallback) fallback.hidden = true;
