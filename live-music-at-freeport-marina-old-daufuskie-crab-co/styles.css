@@ -255,7 +255,15 @@ button{font:inherit;cursor:pointer}
 .week-title{font-family:var(--font-display);font-size:.85rem;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:700;display:flex;align-items:center;gap:14px}
 .week-title::after{content:"";flex:1;height:1px;background:var(--line)}
 .show-list{display:grid;gap:10px}
-.show{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:8px 22px;align-items:center;padding:14px 22px 14px 14px;background:var(--shell);border:1px solid var(--line);border-radius:var(--radius);transition:box-shadow .3s var(--ease),transform .3s var(--ease),border-color .3s}
+.show{position:relative;display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:8px 22px;align-items:center;padding:14px 22px 14px 14px;background:var(--shell);border:1px solid var(--line);border-radius:var(--radius);transition:box-shadow .3s var(--ease),transform .3s var(--ease),border-color .3s}
+.show.has-square{grid-template-columns:152px 76px minmax(0,1fr) auto;gap:8px 22px}
+.show.has-link{cursor:pointer}
+.show-link{position:absolute;inset:0;z-index:1;border-radius:inherit}
+.show-link:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.show-thumb{width:152px;height:152px;aspect-ratio:1/1;overflow:hidden;border-radius:var(--radius-sm);background:var(--sand-deep)}
+.show-thumb img{display:block;width:100%;height:100%;object-fit:cover}
+.show-main .fb-event-link{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:.85rem;font-weight:700;color:var(--blue)}
+.show-main .fb-event-link::after{content:"\2192";line-height:1}
 .show:hover{box-shadow:var(--shadow);transform:translateY(-2px);border-color:transparent}
 .show-date{display:grid;justify-items:center;align-content:center;gap:2px;height:64px;border-radius:var(--radius-sm);background:var(--blue-deep);color:#fff}
 .show-date span{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#9dc0f0;line-height:1}
@@ -280,6 +288,11 @@ button{font:inherit;cursor:pointer}
   .show{grid-template-columns:60px minmax(0,1fr);padding:12px 14px 12px 12px;gap:6px 14px}
   .show-date{height:56px}
   .show-when{grid-column:2;text-align:left;display:flex;flex-wrap:wrap;gap:4px 12px}
+  .show.has-square{grid-template-columns:120px minmax(0,1fr)}
+  .show.has-square .show-date{display:none}
+  .show.has-square .show-thumb{grid-column:1;grid-row:1 / span 2;width:120px;height:120px;align-self:start}
+  .show.has-square .show-main{grid-column:2;grid-row:1}
+  .show.has-square .show-when{grid-column:2;grid-row:2}
 }
 
 /* Sheet status and notes: cancellations are not performers. */
